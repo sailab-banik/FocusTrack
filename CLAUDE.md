@@ -11,7 +11,7 @@ It is **not** a generic todo app, habit tracker, life tracker, or journal.
 
 ## Status
 
-Phase 1 (milestones 0–8) is complete: auth, categories, projects, timer, session logging, history, goals, and AI session evaluation (OpenAI). Next is Phase 2 in PLAN.md, starting with AI todos.
+Phase 1 (milestones 0–8) is complete: auth, categories, projects, timer, session logging, history, goals, and AI session evaluation (OpenAI). Since then: pause/resume and in-app nudges (PLAN.md section 5). Next is Phase 2 in PLAN.md, starting with AI todos.
 
 ## Commands
 
@@ -87,6 +87,8 @@ In scope: software/career work, learning and skill development, personal project
 Never track: sleep, food, health, location, generic personal habits, personal diary/life events.
 
 Never add: habit tracking, sleep tracking, generic reminders, calendar replacement, social feeds, gamification-heavy systems, complex notifications, team surveillance, employee monitoring.
+
+Nudges are the one exception to "no reminders or notifications", and only in this form: in-app, computed from tracked sessions, stating their evidence, with one concrete action. No push, email, schedules, or streaks. Rules are in PLAN.md section 5.
 
 Do not add a feature because it is common in productivity apps. Every feature must support **better allocation of time toward meaningful long-term work**.
 

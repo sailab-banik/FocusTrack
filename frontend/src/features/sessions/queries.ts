@@ -8,13 +8,17 @@ export type RunningSession = {
   // Set while a pause is in progress.
   pausedAt: string | null;
   pausedSeconds: number;
+  // Start of the current stretch if the session has been paused before.
+  resumedAt: string | null;
 };
 
 export async function getRunningSession(): Promise<RunningSession | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("sessions")
-    .select("id, project_id, category_id, started_at, paused_at, paused_seconds")
+    .select(
+      "id, project_id, category_id, started_at, paused_at, paused_seconds, resumed_at",
+    )
     .is("ended_at", null)
     .maybeSingle();
   if (error) throw error;
@@ -26,6 +30,7 @@ export async function getRunningSession(): Promise<RunningSession | null> {
     startedAt: data.started_at,
     pausedAt: data.paused_at,
     pausedSeconds: data.paused_seconds,
+    resumedAt: data.resumed_at,
   };
 }
 
@@ -84,6 +89,25 @@ export async function listPastSessions(
     sessions: data.slice(0, HISTORY_PAGE_SIZE).map(toPastSession),
     hasMore: data.length > HISTORY_PAGE_SIZE,
   };
+}
+
+/** Finished sessions started since the given time, in no particular order. */
+export async function listSessionSpans(since: Date) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("sessions")
+    .select("project_id, category_id, started_at, ended_at, paused_seconds")
+    .not("ended_at", "is", null)
+    .gte("started_at", since.toISOString());
+  if (error) throw error;
+  return data.map((row) => ({
+    projectId: row.project_id,
+    categoryId: row.category_id,
+    startedAt: row.started_at,
+    // The query filters out running sessions.
+    endedAt: row.ended_at!,
+    pausedSeconds: row.paused_seconds,
+  }));
 }
 
 export async function getPastSession(id: string): Promise<PastSession | null> {

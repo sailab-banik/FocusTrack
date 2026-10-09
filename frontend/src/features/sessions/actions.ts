@@ -143,13 +143,14 @@ export async function resumeSession(id: string): Promise<void> {
   if (paused) {
     // The query above only returns sessions with a pause in progress.
     const pausedAt = paused.paused_at!;
+    const now = new Date();
     const { error } = await supabase
       .from("sessions")
       .update({
         paused_at: null,
         paused_seconds:
-          paused.paused_seconds +
-          durationSeconds(new Date(pausedAt), new Date()),
+          paused.paused_seconds + durationSeconds(new Date(pausedAt), now),
+        resumed_at: now.toISOString(),
       })
       .eq("id", id)
       // Matching the pause read above keeps a second device from adding it twice.

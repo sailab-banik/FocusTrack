@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { listCategories, type Category } from "@/features/categories/queries";
+import { getRevisitNudges } from "@/features/nudges/queries";
+import type { RevisitNudge } from "@/features/nudges/revisit";
+import { RevisitNudges } from "@/features/nudges/revisit-nudges";
 import { listProjects, type Project } from "@/features/projects/queries";
 import {
   getLastUsed,
@@ -10,14 +13,22 @@ import {
 import { RunningTimer } from "@/features/sessions/running-timer";
 import { StartSessionForm } from "@/features/sessions/start-session-form";
 import { TimerFace } from "@/features/sessions/timer-face";
+import { getTimeZone } from "@/features/timezone/time-zone";
 
-export default async function TimerPage() {
-  const [running, projects, categories, lastUsed] = await Promise.all([
-    getRunningSession(),
-    listProjects(),
-    listCategories(),
-    getLastUsed(),
-  ]);
+export default async function TimerPage({ searchParams }: PageProps<"/">) {
+  const now = new Date();
+  const timeZone = await getTimeZone();
+  const projectsPromise = listProjects();
+  const [running, projects, categories, lastUsed, nudges, params] =
+    await Promise.all([
+      getRunningSession(),
+      projectsPromise,
+      listCategories(),
+      getLastUsed(),
+      getRevisitNudges(projectsPromise, now, timeZone),
+      searchParams,
+    ]);
+  const activeProjects = projects.filter((p) => !p.archived);
 
   return (
     <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-8 px-4 py-8">
@@ -29,9 +40,18 @@ export default async function TimerPage() {
         />
       ) : (
         <StartPanel
-          projects={projects.filter((p) => !p.archived)}
+          projects={activeProjects}
           categories={categories}
-          lastUsed={lastUsed}
+          // A nudge links here with the work to restart already chosen.
+          defaultProjectId={
+            idIn(activeProjects, params.project) ?? lastUsed?.projectId
+          }
+          defaultCategoryId={
+            idIn(categories, params.category) ?? lastUsed?.categoryId
+          }
+          nudges={nudges}
+          now={now}
+          timeZone={timeZone}
         />
       )}
     </main>
@@ -57,6 +77,7 @@ function ActiveSession({
       startedAt={running.startedAt}
       pausedAt={running.pausedAt}
       pausedSeconds={running.pausedSeconds}
+      resumedAt={running.resumedAt}
       projectName={project.name}
       categoryName={category.name}
       kind={category.kind}
@@ -67,8 +88,20 @@ function ActiveSession({
 function StartPanel({
   projects,
   categories,
-  lastUsed,
-}: Parameters<typeof StartSessionForm>[0]) {
+  defaultProjectId,
+  defaultCategoryId,
+  nudges,
+  now,
+  timeZone,
+}: {
+  projects: Project[];
+  categories: Category[];
+  defaultProjectId: string | undefined;
+  defaultCategoryId: string | undefined;
+  nudges: RevisitNudge[];
+  now: Date;
+  timeZone: string;
+}) {
   if (projects.length === 0) {
     return (
       <EmptyState href="/projects" linkText="Add a project">
@@ -85,17 +118,30 @@ function StartPanel({
   }
   return (
     <>
-      {/* Decorative at rest, so short phones drop it to keep Start in view. */}
-      <div
-        aria-hidden
-        className="hidden text-foreground/25 sm:block [@media(min-height:760px)]:block"
-      >
-        <TimerFace elapsedSeconds={0} />
-      </div>
+      {nudges.length > 0 ? (
+        // Below the form on phones, so Start stays within reach.
+        <RevisitNudges
+          nudges={nudges}
+          now={now}
+          timeZone={timeZone}
+          className="order-last sm:order-first"
+        />
+      ) : (
+        // Decorative at rest, so short phones drop it to keep Start in view.
+        <div
+          aria-hidden
+          className="hidden text-foreground/25 sm:block [@media(min-height:760px)]:block"
+        >
+          <TimerFace elapsedSeconds={0} />
+        </div>
+      )}
       <StartSessionForm
+        // Remount so a nudge's choice replaces the chips' earlier defaults.
+        key={`${defaultProjectId}:${defaultCategoryId}`}
         projects={projects}
         categories={categories}
-        lastUsed={lastUsed}
+        defaultProjectId={defaultProjectId}
+        defaultCategoryId={defaultCategoryId}
       />
     </>
   );
@@ -121,4 +167,12 @@ function EmptyState({
       </Link>
     </div>
   );
+}
+
+// Query values are user input: accept one only if it names a listed option.
+function idIn(
+  options: { id: string }[],
+  value: string | string[] | undefined,
+): string | undefined {
+  return options.find((option) => option.id === value)?.id;
 }

@@ -1,21 +1,31 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { Pause, Play, Square } from "lucide-react";
+import { Coffee, Hourglass, Pause, Play, Square } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import type { CategoryKind } from "@/features/categories/category-input";
 import { KindMark } from "@/features/categories/kind-mark";
+import { NudgeCard } from "@/features/nudges/nudge-card";
+import { runningNudge } from "@/features/nudges/running";
 import { pauseSession, resumeSession } from "./actions";
-import { durationSeconds, formatClock, runningSeconds } from "./duration";
+import {
+  durationSeconds,
+  formatClock,
+  formatDuration,
+  runningSeconds,
+} from "./duration";
 import { StopSessionForm } from "./stop-session-form";
 import { TimerFace } from "./timer-face";
+
+const SNOOZE_MS = 30 * 60_000;
 
 export function RunningTimer({
   sessionId,
   startedAt,
   pausedAt,
   pausedSeconds,
+  resumedAt,
   projectName,
   categoryName,
   kind,
@@ -24,6 +34,7 @@ export function RunningTimer({
   startedAt: string;
   pausedAt: string | null;
   pausedSeconds: number;
+  resumedAt: string | null;
   projectName: string;
   categoryName: string;
   kind: CategoryKind;
@@ -32,6 +43,8 @@ export function RunningTimer({
   // Set when Stop is tapped, so time spent writing the log is not counted.
   const [stoppedAt, setStoppedAt] = useState<Date | null>(null);
   const [switching, startSwitch] = useTransition();
+  // "Keep going" quiets the break nudge for a while; a reload brings it back.
+  const [snoozedUntil, setSnoozedUntil] = useState<Date | null>(null);
 
   useEffect(() => {
     if (stoppedAt) return;
@@ -44,8 +57,58 @@ export function RunningTimer({
     stoppedAt ?? now,
   );
 
+  const nudge =
+    stoppedAt || (snoozedUntil && now < snoozedUntil)
+      ? null
+      : runningNudge({ startedAt, pausedAt, resumedAt }, now);
+
+  // The tab title is the one part of the app visible from another tab.
+  const tabTitle =
+    nudge && (nudge.type === "break" ? "Break due" : "Still paused");
+  useEffect(() => {
+    if (!tabTitle) return;
+    const previous = document.title;
+    document.title = `${tabTitle} · FocusTrack`;
+    return () => {
+      document.title = previous;
+    };
+  }, [tabTitle]);
+
   return (
     <div data-kind={kind} className="flex flex-col gap-8">
+      {nudge && (
+        <div role="status">
+          {nudge.type === "break" ? (
+            <NudgeCard
+              icon={<Coffee aria-hidden />}
+              title={`${formatDuration(nudge.stretchSeconds)} without a pause`}
+              actions={
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="h-9 px-3.5"
+                  onClick={() =>
+                    setSnoozedUntil(new Date(now.getTime() + SNOOZE_MS))
+                  }
+                >
+                  Keep going
+                </Button>
+              }
+            >
+              Pause for a few minutes, or stop here and log what you have so
+              far.
+            </NudgeCard>
+          ) : (
+            <NudgeCard
+              icon={<Hourglass aria-hidden />}
+              title={`Paused for ${formatDuration(nudge.pausedSeconds)}`}
+            >
+              Resume, or stop the session. Stopping ends it at the moment you
+              paused, so none of this break is counted.
+            </NudgeCard>
+          )}
+        </div>
+      )}
       <div className="flex items-end justify-between gap-4">
         <div className="flex min-w-0 flex-col gap-1">
           <h1 className="truncate text-2xl font-semibold tracking-tight font-stretch-[108%]">

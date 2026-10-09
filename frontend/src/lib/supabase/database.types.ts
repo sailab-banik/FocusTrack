@@ -89,13 +89,13 @@ isOneToOne: false
                   ]
                 },"sessions": {
                   Row: {
-                    "category_id": string,"created_at": string,"description": string | null,"difficulty": number | null,"ended_at": string | null,"energy": number | null,"id": string,"notes": string | null,"outcome": string | null,"paused_at": string | null,"paused_seconds": number,"project_id": string,"started_at": string,"user_id": string
+                    "category_id": string,"created_at": string,"description": string | null,"difficulty": number | null,"ended_at": string | null,"energy": number | null,"id": string,"notes": string | null,"outcome": string | null,"paused_at": string | null,"paused_seconds": number,"project_id": string,"resumed_at": string | null,"started_at": string,"user_id": string
                   }
                   Insert: {
-                    "category_id": string,"created_at"?: string,"description"?: string | null,"difficulty"?: number | null,"ended_at"?: string | null,"energy"?: number | null,"id"?: string,"notes"?: string | null,"outcome"?: string | null,"paused_at"?: string | null,"paused_seconds"?: number,"project_id": string,"started_at"?: string,"user_id"?: string
+                    "category_id": string,"created_at"?: string,"description"?: string | null,"difficulty"?: number | null,"ended_at"?: string | null,"energy"?: number | null,"id"?: string,"notes"?: string | null,"outcome"?: string | null,"paused_at"?: string | null,"paused_seconds"?: number,"project_id": string,"resumed_at"?: string | null,"started_at"?: string,"user_id"?: string
                   }
                   Update: {
-                    "category_id"?: string,"created_at"?: string,"description"?: string | null,"difficulty"?: number | null,"ended_at"?: string | null,"energy"?: number | null,"id"?: string,"notes"?: string | null,"outcome"?: string | null,"paused_at"?: string | null,"paused_seconds"?: number,"project_id"?: string,"started_at"?: string,"user_id"?: string
+                    "category_id"?: string,"created_at"?: string,"description"?: string | null,"difficulty"?: number | null,"ended_at"?: string | null,"energy"?: number | null,"id"?: string,"notes"?: string | null,"outcome"?: string | null,"paused_at"?: string | null,"paused_seconds"?: number,"project_id"?: string,"resumed_at"?: string | null,"started_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {

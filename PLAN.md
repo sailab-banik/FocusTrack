@@ -158,6 +158,18 @@ Clean, fast, minimal, work-focused, data-driven. The timer is one of the most pr
 | | AI insights |
 | | Goal progress |
 
+### Nudges
+
+In-app only: no push, email, or scheduled reminders. A nudge is computed from tracked sessions when a page renders, states its evidence, and offers one concrete action. None depends on AI.
+
+| Nudge | Shown when | Where |
+|---|---|---|
+| Take a break | 90 minutes of work without a pause | Running timer, and the tab title |
+| Still paused | A pause has lasted 30 minutes | Running timer, and the tab title |
+| Pick it back up | A project was worked on at least 2 of the 7 days up to its last session, then left for 3 to 14 days | Timer page, when no session is running |
+
+"Keep going" quiets the break nudge for 30 minutes. A dismissed "pick it back up" nudge stays dismissed for that lapse, on that device.
+
 ## 6. Build plan
 
 Build the smallest useful version first. Do not implement the long-term vision at once. Each milestone must meet the definition of done in CLAUDE.md before the next starts.

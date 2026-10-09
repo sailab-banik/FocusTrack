@@ -5,18 +5,19 @@ import { Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { startSession, type SessionFormState } from "./actions";
 import { ChoiceChips, type ChoiceOption } from "./choice-chips";
-import type { LastUsed } from "./queries";
 
 const initialState: SessionFormState = { status: "idle" };
 
 export function StartSessionForm({
   projects,
   categories,
-  lastUsed,
+  defaultProjectId,
+  defaultCategoryId,
 }: {
   projects: ChoiceOption[];
   categories: ChoiceOption[];
-  lastUsed: LastUsed | null;
+  defaultProjectId: string | undefined;
+  defaultCategoryId: string | undefined;
 }) {
   const [state, formAction, pending] = useActionState(
     startSession,
@@ -29,14 +30,14 @@ export function StartSessionForm({
         name="projectId"
         legend="Project"
         options={projects}
-        defaultValue={lastUsed?.projectId}
+        defaultValue={defaultProjectId}
         required
       />
       <ChoiceChips
         name="categoryId"
         legend="Category"
         options={categories}
-        defaultValue={lastUsed?.categoryId}
+        defaultValue={defaultCategoryId}
         required
       />
       {state.status === "error" && (
