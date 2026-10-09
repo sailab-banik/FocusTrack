@@ -6,7 +6,7 @@ import { updateSession } from "@/features/sessions/actions";
 import { DeleteSessionButton } from "@/features/sessions/delete-session-button";
 import { getPastSession } from "@/features/sessions/queries";
 import { SessionForm } from "@/features/sessions/session-form";
-import { isUuid } from "@/features/sessions/start-input";
+import { isUuid } from "@/lib/uuid";
 import { getTimeZone } from "@/features/timezone/time-zone";
 import { toLocalDateTimeInput } from "@/features/timezone/zoned-time";
 

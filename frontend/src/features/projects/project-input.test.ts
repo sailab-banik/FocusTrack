@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseProjectName } from "./project-input";
+import { parseProjectGoal, parseProjectName } from "./project-input";
 
 function form(fields: Record<string, string>): FormData {
   const data = new FormData();
@@ -23,5 +23,28 @@ describe("parseProjectName", () => {
   it("accepts 80 characters and rejects 81", () => {
     expect(parseProjectName(form({ name: "a".repeat(80) })).ok).toBe(true);
     expect(parseProjectName(form({ name: "a".repeat(81) })).ok).toBe(false);
+  });
+});
+
+describe("parseProjectGoal", () => {
+  const GOAL_ID = "aaaaaaaa-0000-4000-8000-00000000000a";
+
+  it("accepts a goal id", () => {
+    expect(parseProjectGoal(form({ goalId: GOAL_ID }))).toEqual({
+      ok: true,
+      goalId: GOAL_ID,
+    });
+  });
+
+  it("treats an empty or missing value as no goal", () => {
+    expect(parseProjectGoal(form({ goalId: "" }))).toEqual({
+      ok: true,
+      goalId: null,
+    });
+    expect(parseProjectGoal(form({}))).toEqual({ ok: true, goalId: null });
+  });
+
+  it("rejects values that are not ids", () => {
+    expect(parseProjectGoal(form({ goalId: "goal-1" })).ok).toBe(false);
   });
 });

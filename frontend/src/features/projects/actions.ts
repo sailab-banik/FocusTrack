@@ -4,7 +4,7 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import { refresh } from "next/cache";
 import { requireUser } from "@/features/auth/current-user";
 import { createClient } from "@/lib/supabase/server";
-import { parseProjectName } from "./project-input";
+import { parseProjectGoal, parseProjectName } from "./project-input";
 
 export type ProjectFormState =
   | { status: "idle" }
@@ -12,6 +12,7 @@ export type ProjectFormState =
   | { status: "error"; message: string };
 
 const UNIQUE_VIOLATION = "23505";
+const FOREIGN_KEY_VIOLATION = "23503";
 
 // user_id is never sent: the column defaults to auth.uid() and RLS rejects
 // rows that belong to anyone else.
@@ -30,7 +31,7 @@ export async function createProject(
   return finish(error, parsed.name);
 }
 
-export async function renameProject(
+export async function updateProject(
   _state: ProjectFormState,
   formData: FormData,
 ): Promise<ProjectFormState> {
@@ -39,15 +40,23 @@ export async function renameProject(
   if (typeof id !== "string") {
     return { status: "error", message: "Missing project." };
   }
-  const parsed = parseProjectName(formData);
-  if (!parsed.ok) return { status: "error", message: parsed.error };
+  const name = parseProjectName(formData);
+  if (!name.ok) return { status: "error", message: name.error };
+  const goal = parseProjectGoal(formData);
+  if (!goal.ok) return { status: "error", message: goal.error };
 
   const supabase = await createClient();
   const { error } = await supabase
     .from("projects")
-    .update({ name: parsed.name })
+    .update({ name: name.name, goal_id: goal.goalId })
     .eq("id", id);
-  return finish(error, parsed.name);
+  if (error?.code === FOREIGN_KEY_VIOLATION) {
+    return {
+      status: "error",
+      message: "That goal no longer exists. Reload the page.",
+    };
+  }
+  return finish(error, name.name);
 }
 
 export async function setProjectArchived(

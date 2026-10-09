@@ -7,6 +7,7 @@ import { TimeZoneSync } from "@/features/timezone/time-zone-sync";
 
 const NAV_LINKS = [
   { href: "/sessions", label: "History" },
+  { href: "/goals", label: "Goals" },
   { href: "/projects", label: "Projects" },
   { href: "/categories", label: "Categories" },
 ] as const;

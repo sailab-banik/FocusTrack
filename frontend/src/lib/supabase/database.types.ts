@@ -36,18 +36,37 @@ export type Database = {
                   Relationships: [
                     
                   ]
-                },"projects": {
+                },"goals": {
                   Row: {
-                    "archived_at": string | null,"created_at": string,"id": string,"name": string,"user_id": string
+                    "archived_at": string | null,"created_at": string,"description": string | null,"id": string,"title": string,"user_id": string
                   }
                   Insert: {
-                    "archived_at"?: string | null,"created_at"?: string,"id"?: string,"name": string,"user_id"?: string
+                    "archived_at"?: string | null,"created_at"?: string,"description"?: string | null,"id"?: string,"title": string,"user_id"?: string
                   }
                   Update: {
-                    "archived_at"?: string | null,"created_at"?: string,"id"?: string,"name"?: string,"user_id"?: string
+                    "archived_at"?: string | null,"created_at"?: string,"description"?: string | null,"id"?: string,"title"?: string,"user_id"?: string
                   }
                   Relationships: [
                     
+                  ]
+                },"projects": {
+                  Row: {
+                    "archived_at": string | null,"created_at": string,"goal_id": string | null,"id": string,"name": string,"user_id": string
+                  }
+                  Insert: {
+                    "archived_at"?: string | null,"created_at"?: string,"goal_id"?: string | null,"id"?: string,"name": string,"user_id"?: string
+                  }
+                  Update: {
+                    "archived_at"?: string | null,"created_at"?: string,"goal_id"?: string | null,"id"?: string,"name"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "projects_goal_id_user_id_fkey"
+      columns: ["goal_id","user_id"]
+isOneToOne: false
+      referencedRelation: "goals"
+      referencedColumns: ["id","user_id"]
+    }
                   ]
                 },"sessions": {
                   Row: {

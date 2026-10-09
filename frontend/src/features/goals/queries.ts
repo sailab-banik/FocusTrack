@@ -1,23 +1,23 @@
 import { createClient } from "@/lib/supabase/server";
 
-export type Project = {
+export type Goal = {
   id: string;
-  name: string;
+  title: string;
+  description: string | null;
   archived: boolean;
-  goalId: string | null;
 };
 
-export async function listProjects(): Promise<Project[]> {
+export async function listGoals(): Promise<Goal[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from("projects")
-    .select("id, name, archived_at, goal_id")
-    .order("name");
+    .from("goals")
+    .select("id, title, description, archived_at")
+    .order("created_at");
   if (error) throw error;
   return data.map((row) => ({
     id: row.id,
-    name: row.name,
+    title: row.title,
+    description: row.description,
     archived: row.archived_at !== null,
-    goalId: row.goal_id,
   }));
 }

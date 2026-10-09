@@ -8,7 +8,8 @@ import { getTimeZone } from "@/features/timezone/time-zone";
 import { createClient } from "@/lib/supabase/server";
 import { parseSessionInput, type SessionInput } from "./session-input";
 import { parseSessionLog, resolveEndedAt } from "./session-log";
-import { isUuid, parseStartInput } from "./start-input";
+import { isUuid } from "@/lib/uuid";
+import { parseStartInput } from "./start-input";
 
 export type SessionFormState =
   | { status: "idle" }

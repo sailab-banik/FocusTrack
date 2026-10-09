@@ -11,7 +11,7 @@ It is **not** a generic todo app, habit tracker, life tracker, or journal.
 
 ## Status
 
-Milestones 0–6 (scaffold, authentication, categories, projects, timer, session logging, session history) are in place. Next is milestone 7 (basic goals) in PLAN.md.
+Milestones 0–7 (scaffold, authentication, categories, projects, timer, session logging, session history, basic goals) are in place. Next is milestone 8 (basic AI evaluation) in PLAN.md; open decision 1 (first AI provider) must be settled first.
 
 ## Commands
 

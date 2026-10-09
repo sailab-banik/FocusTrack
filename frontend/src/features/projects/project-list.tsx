@@ -1,7 +1,14 @@
+import type { Goal } from "@/features/goals/queries";
 import { ProjectRow } from "./project-row";
 import type { Project } from "./queries";
 
-export function ProjectList({ projects }: { projects: Project[] }) {
+export function ProjectList({
+  projects,
+  goals,
+}: {
+  projects: Project[];
+  goals: Goal[];
+}) {
   if (projects.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
@@ -25,7 +32,7 @@ export function ProjectList({ projects }: { projects: Project[] }) {
         ) : (
           <ul className="divide-y">
             {active.map((project) => (
-              <ProjectRow key={project.id} project={project} />
+              <ProjectRow key={project.id} project={project} goals={goals} />
             ))}
           </ul>
         )}
@@ -39,7 +46,7 @@ export function ProjectList({ projects }: { projects: Project[] }) {
           </p>
           <ul className="divide-y">
             {archived.map((project) => (
-              <ProjectRow key={project.id} project={project} />
+              <ProjectRow key={project.id} project={project} goals={goals} />
             ))}
           </ul>
         </section>
