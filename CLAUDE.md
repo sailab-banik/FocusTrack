@@ -11,7 +11,7 @@ It is **not** a generic todo app, habit tracker, life tracker, or journal.
 
 ## Status
 
-Milestone 0 (scaffold) is in place. No database schema, auth pages, or features exist yet; next is milestone 1 (authentication) in PLAN.md.
+Milestones 0 (scaffold) and 1 (authentication) are in place. No database schema or tracking features exist yet; next is milestone 2 (categories) in PLAN.md.
 
 ## Commands
 
@@ -41,6 +41,8 @@ Backend (`backend/`, local Supabase, needs Docker):
 
 Environment: copy `frontend/.env.example` to `frontend/.env.local` and fill in the Supabase URL and publishable key.
 
+Hosted Supabase auth setup (dashboard, not in code): set Site URL to the deployed app URL, and change the "Confirm signup" email template link to `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`. Local Supabase skips email confirmation.
+
 ## Architecture
 
 ```
@@ -49,7 +51,9 @@ frontend/                  Next.js app (UI, server actions, route handlers)
   src/features/<feature>/  Feature code: components, server actions, pure business logic + tests
   src/components/ui/       shadcn/ui components (generated; style "base-nova", Base UI primitives)
   src/lib/supabase/        Supabase clients: client.ts (browser), server.ts (server components/actions)
-  src/proxy.ts             Refreshes the Supabase session cookie on every request
+  src/app/(app)/           Signed-in pages; the layout calls requireUser()
+  src/app/(auth)/          Sign-in and sign-up pages
+  src/proxy.ts             Refreshes the Supabase session cookie; redirects signed-out users to /login
 backend/                   Database and auth
   supabase/config.toml     Local Supabase config
   supabase/migrations/     SQL migrations: schema and RLS policies

@@ -1,5 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  HOME_PATH,
+  isAuthPage,
+  isPublicPath,
+  SIGN_IN_PATH,
+} from "@/features/auth/routes";
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -29,9 +35,31 @@ export async function proxy(request: NextRequest) {
   );
 
   // Refreshes an expired session so Server Components read a valid one.
-  await supabase.auth.getClaims();
+  const { data } = await supabase.auth.getClaims();
+  const signedIn = data !== null;
+  const { pathname } = request.nextUrl;
 
+  if (!signedIn && !isPublicPath(pathname)) {
+    return redirectKeepingCookies(request, response, SIGN_IN_PATH);
+  }
+  if (signedIn && isAuthPage(pathname)) {
+    return redirectKeepingCookies(request, response, HOME_PATH);
+  }
   return response;
+}
+
+// Pages still check the user themselves; this redirect is only for UX.
+// Copies cookies so a session refreshed above is not lost on redirect.
+function redirectKeepingCookies(
+  request: NextRequest,
+  response: NextResponse,
+  pathname: string,
+) {
+  const redirect = NextResponse.redirect(new URL(pathname, request.url));
+  for (const cookie of response.cookies.getAll()) {
+    redirect.cookies.set(cookie);
+  }
+  return redirect;
 }
 
 export const config = {
