@@ -11,7 +11,7 @@ It is **not** a generic todo app, habit tracker, life tracker, or journal.
 
 ## Status
 
-Milestones 0 (scaffold), 1 (authentication), and 2 (categories) are in place. Next is milestone 3 (projects) in PLAN.md.
+Milestones 0–3 (scaffold, authentication, categories, projects) are in place. Next is milestone 4 (timer) in PLAN.md.
 
 ## Commands
 

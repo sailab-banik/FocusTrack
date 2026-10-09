@@ -14,6 +14,12 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
             FocusTrack
           </Link>
           <Link
+            href="/projects"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            Projects
+          </Link>
+          <Link
             href="/categories"
             className="text-muted-foreground hover:text-foreground"
           >

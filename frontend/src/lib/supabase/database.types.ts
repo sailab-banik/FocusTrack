@@ -36,6 +36,19 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"projects": {
+                  Row: {
+                    "archived_at": string | null,"created_at": string,"id": string,"name": string,"user_id": string
+                  }
+                  Insert: {
+                    "archived_at"?: string | null,"created_at"?: string,"id"?: string,"name": string,"user_id"?: string
+                  }
+                  Update: {
+                    "archived_at"?: string | null,"created_at"?: string,"id"?: string,"name"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 }
           }
           Views: {
