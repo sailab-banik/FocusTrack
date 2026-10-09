@@ -11,7 +11,7 @@ It is **not** a generic todo app, habit tracker, life tracker, or journal.
 
 ## Status
 
-Milestones 0–5 (scaffold, authentication, categories, projects, timer, session logging) are in place. Next is milestone 6 (session history) in PLAN.md.
+Milestones 0–6 (scaffold, authentication, categories, projects, timer, session logging, session history) are in place. Next is milestone 7 (basic goals) in PLAN.md.
 
 ## Commands
 
@@ -65,6 +65,7 @@ backend/                   Database and auth
 - There is no separate backend service. Server logic lives in Next.js server actions and route handlers; `backend/` owns the schema, RLS policies, and Supabase config.
 - Next.js 16: request interception is `src/proxy.ts`, not `middleware.ts`. Current docs ship in `frontend/node_modules/next/dist/docs/`.
 - Tests sit next to the code they cover as `*.test.ts`.
+- Times: the server renders in UTC, so anything showing wall-clock times or day boundaries uses the user's timezone from `getTimeZone()` (a `tz` cookie mirrored from the browser by `TimeZoneSync`) and the helpers in `src/features/timezone/zoned-time.ts`.
 
 ## Stack
 

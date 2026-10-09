@@ -5,13 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { stopSession, type SessionFormState } from "./actions";
-import { ChoiceChips } from "./choice-chips";
+import { RatingChips } from "./rating-chips";
 import { LOG_LIMITS } from "./session-log";
-
-const RATINGS = ["1", "2", "3", "4", "5"].map((value) => ({
-  id: value,
-  name: value,
-}));
 
 const initialState: SessionFormState = { status: "idle" };
 
@@ -58,19 +53,21 @@ export function StopSessionForm({
         />
       </div>
 
-      <ChoiceChips
+      <RatingChips
         name="energy"
-        legend={<RatingLegend label="Energy" low="drained" high="sharp" />}
-        options={RATINGS}
-        defaultValue={undefined}
-        required={false}
+        label="Energy"
+        low="drained"
+        high="sharp"
+        defaultValue={null}
+        clearable={false}
       />
-      <ChoiceChips
+      <RatingChips
         name="difficulty"
-        legend={<RatingLegend label="Difficulty" low="easy" high="hard" />}
-        options={RATINGS}
-        defaultValue={undefined}
-        required={false}
+        label="Difficulty"
+        low="easy"
+        high="hard"
+        defaultValue={null}
+        clearable={false}
       />
 
       <div className="flex flex-col gap-2">
@@ -113,24 +110,5 @@ export function StopSessionForm({
         </Button>
       </div>
     </form>
-  );
-}
-
-function RatingLegend({
-  label,
-  low,
-  high,
-}: {
-  label: string;
-  low: string;
-  high: string;
-}) {
-  return (
-    <>
-      {label}{" "}
-      <span className="font-normal text-muted-foreground">
-        (optional · 1 {low}, 5 {high})
-      </span>
-    </>
   );
 }

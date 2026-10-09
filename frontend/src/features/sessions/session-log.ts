@@ -1,19 +1,36 @@
 export const LOG_LIMITS = { description: 500, outcome: 500, notes: 2000 };
 
-export type SessionLog = {
+export type LogFields = {
   description: string;
   outcome: string;
   energy: number | null;
   difficulty: number | null;
   notes: string | null;
-  stoppedAt: Date;
 };
+
+export type SessionLog = LogFields & { stoppedAt: Date };
+
+type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 
 export type SessionLogResult =
   | { ok: true; log: SessionLog }
   | { ok: false; error: string };
 
 export function parseSessionLog(formData: FormData): SessionLogResult {
+  const fields = parseLogFields(formData);
+  if (!fields.ok) return fields;
+
+  const stoppedAtRaw = formData.get("stoppedAt");
+  const stoppedAt =
+    typeof stoppedAtRaw === "string" ? new Date(stoppedAtRaw) : null;
+  if (stoppedAt === null || Number.isNaN(stoppedAt.getTime())) {
+    return { ok: false, error: "Missing stop time. Stop the session again." };
+  }
+
+  return { ok: true, log: { ...fields.value, stoppedAt } };
+}
+
+export function parseLogFields(formData: FormData): Result<LogFields> {
   const description = requiredText(formData, "description");
   if (description === null) {
     return { ok: false, error: "Describe what you worked on." };
@@ -41,16 +58,9 @@ export function parseSessionLog(formData: FormData): SessionLogResult {
     return { ok: false, error: tooLong("Notes", LOG_LIMITS.notes) };
   }
 
-  const stoppedAtRaw = formData.get("stoppedAt");
-  const stoppedAt =
-    typeof stoppedAtRaw === "string" ? new Date(stoppedAtRaw) : null;
-  if (stoppedAt === null || Number.isNaN(stoppedAt.getTime())) {
-    return { ok: false, error: "Missing stop time. Stop the session again." };
-  }
-
   return {
     ok: true,
-    log: { description, outcome, energy, difficulty, notes, stoppedAt },
+    value: { description, outcome, energy, difficulty, notes },
   };
 }
 

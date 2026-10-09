@@ -1,10 +1,14 @@
 "use server";
 
+import type { PostgrestError } from "@supabase/supabase-js";
 import { refresh } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireUser } from "@/features/auth/current-user";
+import { getTimeZone } from "@/features/timezone/time-zone";
 import { createClient } from "@/lib/supabase/server";
+import { parseSessionInput, type SessionInput } from "./session-input";
 import { parseSessionLog, resolveEndedAt } from "./session-log";
-import { parseStartInput } from "./start-input";
+import { isUuid, parseStartInput } from "./start-input";
 
 export type SessionFormState =
   | { status: "idle" }
@@ -87,4 +91,82 @@ export async function stopSession(
     };
   }
   return { status: "idle" };
+}
+
+const HISTORY_PATH = "/sessions";
+
+export async function createSession(
+  _state: SessionFormState,
+  formData: FormData,
+): Promise<SessionFormState> {
+  await requireUser();
+  const parsed = parseSessionInput(formData, await getTimeZone(), new Date());
+  if (!parsed.ok) return { status: "error", message: parsed.error };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("sessions")
+    .insert(toRow(parsed.input));
+  const failure = saveFailure(error);
+  if (failure) return failure;
+  redirect(HISTORY_PATH);
+}
+
+export async function updateSession(
+  _state: SessionFormState,
+  formData: FormData,
+): Promise<SessionFormState> {
+  await requireUser();
+  const id = formData.get("id");
+  if (!isUuid(id)) return { status: "error", message: "Missing session." };
+  const parsed = parseSessionInput(formData, await getTimeZone(), new Date());
+  if (!parsed.ok) return { status: "error", message: parsed.error };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("sessions")
+    .update(toRow(parsed.input))
+    .eq("id", id)
+    .not("ended_at", "is", null)
+    .select("id");
+  const failure = saveFailure(error);
+  if (failure) return failure;
+  if (data?.length === 0) {
+    return { status: "error", message: "This session no longer exists." };
+  }
+  redirect(HISTORY_PATH);
+}
+
+export async function deleteSession(id: string): Promise<void> {
+  await requireUser();
+  if (!isUuid(id)) throw new Error("Invalid session id");
+  const supabase = await createClient();
+  const { error } = await supabase.from("sessions").delete().eq("id", id);
+  if (error) throw error;
+  redirect(HISTORY_PATH);
+}
+
+function toRow(input: SessionInput) {
+  return {
+    project_id: input.projectId,
+    category_id: input.categoryId,
+    started_at: input.startedAt.toISOString(),
+    ended_at: input.endedAt.toISOString(),
+    description: input.description,
+    outcome: input.outcome,
+    energy: input.energy,
+    difficulty: input.difficulty,
+    notes: input.notes,
+  };
+}
+
+function saveFailure(error: PostgrestError | null): SessionFormState | null {
+  if (!error) return null;
+  if (error.code === FOREIGN_KEY_VIOLATION) {
+    return {
+      status: "error",
+      message: "That project or category no longer exists. Reload the page.",
+    };
+  }
+  throw error;
 }
