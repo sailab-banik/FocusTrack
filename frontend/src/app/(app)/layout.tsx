@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/features/auth/actions";
 import { requireUser } from "@/features/auth/current-user";
@@ -8,7 +9,17 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <>
       <header className="flex items-center justify-between gap-4 border-b px-4 py-2">
-        <span className="text-sm font-semibold">FocusTrack</span>
+        <nav className="flex items-center gap-4 text-sm">
+          <Link href="/" className="font-semibold">
+            FocusTrack
+          </Link>
+          <Link
+            href="/categories"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            Categories
+          </Link>
+        </nav>
         <div className="flex min-w-0 items-center gap-2">
           <span className="truncate text-sm text-muted-foreground">
             {user.email}

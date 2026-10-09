@@ -11,7 +11,7 @@ It is **not** a generic todo app, habit tracker, life tracker, or journal.
 
 ## Status
 
-Milestones 0 (scaffold) and 1 (authentication) are in place. No database schema or tracking features exist yet; next is milestone 2 (categories) in PLAN.md.
+Milestones 0 (scaffold), 1 (authentication), and 2 (categories) are in place. Next is milestone 3 (projects) in PLAN.md.
 
 ## Commands
 
@@ -35,8 +35,10 @@ Backend (`backend/`, local Supabase, needs Docker):
 | `pnpm start` / `pnpm stop` | Start/stop the local Supabase stack; `start` prints the API URL and publishable key |
 | `pnpm status` | Show local URLs and keys |
 | `pnpm migration:new <name>` | Create a migration in `supabase/migrations/` |
-| `pnpm db:reset` | Rebuild the local database from migrations |
+| `pnpm db:reset` | Rebuild the local database from migrations (wipes local data) |
+| `pnpm db:migrate` | Apply pending migrations to the local database, keeping data |
 | `pnpm db:push` | Apply migrations to the linked hosted project |
+| `pnpm test` | Run pgTAP database tests in `supabase/tests/` (RLS checks) |
 | `pnpm types` | Regenerate `frontend/src/lib/supabase/database.types.ts` from the local database |
 
 Environment: copy `frontend/.env.example` to `frontend/.env.local` and fill in the Supabase URL and publishable key.
@@ -57,6 +59,7 @@ frontend/                  Next.js app (UI, server actions, route handlers)
 backend/                   Database and auth
   supabase/config.toml     Local Supabase config
   supabase/migrations/     SQL migrations: schema and RLS policies
+  supabase/tests/          pgTAP tests; every user-owned table gets RLS tests here
 ```
 
 - There is no separate backend service. Server logic lives in Next.js server actions and route handlers; `backend/` owns the schema, RLS policies, and Supabase config.
