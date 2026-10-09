@@ -11,7 +11,7 @@ It is **not** a generic todo app, habit tracker, life tracker, or journal.
 
 ## Status
 
-Milestones 0–7 (scaffold, authentication, categories, projects, timer, session logging, session history, basic goals) are in place. Next is milestone 8 (basic AI evaluation) in PLAN.md; open decision 1 (first AI provider) must be settled first.
+Phase 1 (milestones 0–8) is complete: auth, categories, projects, timer, session logging, history, goals, and AI session evaluation (OpenAI). Next is Phase 2 in PLAN.md, starting with AI todos.
 
 ## Commands
 
@@ -41,7 +41,7 @@ Backend (`backend/`, local Supabase, needs Docker):
 | `pnpm test` | Run pgTAP database tests in `supabase/tests/` (RLS checks) |
 | `pnpm types` | Regenerate `frontend/src/lib/supabase/database.types.ts` from the local database |
 
-Environment: copy `frontend/.env.example` to `frontend/.env.local` and fill in the Supabase URL and publishable key.
+Environment: copy `frontend/.env.example` to `frontend/.env.local` and fill in the Supabase URL and publishable key. Optional, server-only: `OPENAI_API_KEY` turns on AI evaluation, and `OPENAI_MODEL` overrides the default model (`gpt-6.1-sol`). Without a key the app works fully and evaluation is shown as off.
 
 Hosted Supabase auth setup (dashboard, not in code): set Site URL to the deployed app URL, and change the "Confirm signup" email template link to `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`. Local Supabase skips email confirmation.
 
@@ -65,6 +65,7 @@ backend/                   Database and auth
 - There is no separate backend service. Server logic lives in Next.js server actions and route handlers; `backend/` owns the schema, RLS policies, and Supabase config.
 - Next.js 16: request interception is `src/proxy.ts`, not `middleware.ts`. Current docs ship in `frontend/node_modules/next/dist/docs/`.
 - Tests sit next to the code they cover as `*.test.ts`.
+- AI: features call the `AiProvider` interface (`src/features/ai/provider.ts`), never a vendor API; `getAiProvider()` returns null when unconfigured. Evaluations run via `after()` so saving never waits on the provider. Bump `PROMPT_VERSION` in `src/features/evaluations/prompt.ts` whenever the prompt or schema changes.
 - Times: the server renders in UTC, so anything showing wall-clock times or day boundaries uses the user's timezone from `getTimeZone()` (a `tz` cookie mirrored from the browser by `TimeZoneSync`) and the helpers in `src/features/timezone/zoned-time.ts`.
 
 ## Stack

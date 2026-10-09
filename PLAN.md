@@ -192,7 +192,7 @@ These are gaps in the requirements. Each has a proposed default that will be use
 
 | # | Question | Proposed default |
 |---|---|---|
-| 1 | Which AI provider is implemented first? | One provider behind the interface; choice needed |
+| 1 | Which AI provider is implemented first? | Decided: OpenAI behind the provider interface |
 | 2 | Which categories count as execution for the execution ratio? | The `kind` mapping in section 2 |
 | 3 | Can a project belong to several goals? | One optional goal per project |
 | 4 | Is a session's project mandatory for quick starts? | Yes, as specified; revisit if it slows mobile start |

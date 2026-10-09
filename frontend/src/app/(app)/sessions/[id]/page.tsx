@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getAiProvider } from "@/features/ai/get-provider";
 import { listCategories } from "@/features/categories/queries";
+import { EvaluationPanel } from "@/features/evaluations/evaluation-panel";
+import { getEvaluation } from "@/features/evaluations/queries";
 import { listProjects } from "@/features/projects/queries";
 import { updateSession } from "@/features/sessions/actions";
 import { DeleteSessionButton } from "@/features/sessions/delete-session-button";
@@ -10,7 +13,7 @@ import { isUuid } from "@/lib/uuid";
 import { getTimeZone } from "@/features/timezone/time-zone";
 import { toLocalDateTimeInput } from "@/features/timezone/zoned-time";
 
-export const metadata: Metadata = { title: "Edit session · FocusTrack" };
+export const metadata: Metadata = { title: "Session · FocusTrack" };
 
 export default async function EditSessionPage({
   params,
@@ -18,17 +21,25 @@ export default async function EditSessionPage({
   const { id } = await params;
   if (!isUuid(id)) notFound();
 
-  const [session, projects, categories, timeZone] = await Promise.all([
-    getPastSession(id),
-    listProjects(),
-    listCategories(),
-    getTimeZone(),
-  ]);
+  const [session, evaluation, projects, categories, timeZone] =
+    await Promise.all([
+      getPastSession(id),
+      getEvaluation(id),
+      listProjects(),
+      listCategories(),
+      getTimeZone(),
+    ]);
   if (!session) notFound();
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-4">
-      <h1 className="text-xl font-semibold tracking-tight">Edit session</h1>
+      <h1 className="text-xl font-semibold tracking-tight">Session</h1>
+      <EvaluationPanel
+        sessionId={session.id}
+        evaluation={evaluation}
+        aiConfigured={getAiProvider() !== null}
+        logged={Boolean(session.description && session.outcome)}
+      />
       <SessionForm
         action={updateSession}
         sessionId={session.id}

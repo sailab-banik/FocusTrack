@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { listCategories } from "@/features/categories/queries";
+import { getOverallScores } from "@/features/evaluations/queries";
 import { listProjects } from "@/features/projects/queries";
 import { listPastSessions } from "@/features/sessions/queries";
 import { SessionHistory } from "@/features/sessions/session-history";
@@ -21,6 +22,7 @@ export default async function HistoryPage({
       listCategories(),
       getTimeZone(),
     ]);
+  const overallScores = await getOverallScores(sessions.map((s) => s.id));
   const oldest = sessions.at(-1);
 
   return (
@@ -47,6 +49,7 @@ export default async function HistoryPage({
           sessions={sessions}
           projectNames={new Map(projects.map((p) => [p.id, p.name]))}
           categoryNames={new Map(categories.map((c) => [c.id, c.name]))}
+          overallScores={overallScores}
           timeZone={timeZone}
           now={new Date()}
         />

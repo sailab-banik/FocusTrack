@@ -68,6 +68,25 @@ isOneToOne: false
       referencedColumns: ["id","user_id"]
     }
                   ]
+                },"session_evaluations": {
+                  Row: {
+                    "created_at": string,"goal_alignment": number,"id": string,"leverage": number,"model": string,"next_action": string,"output": number,"overall_contribution": number,"prompt_version": string,"provider": string,"rationale": string,"session_id": string,"skill_growth": number,"strategic_value": number,"user_id": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"goal_alignment": number,"id"?: string,"leverage": number,"model": string,"next_action": string,"output": number,"overall_contribution": number,"prompt_version": string,"provider": string,"rationale": string,"session_id": string,"skill_growth": number,"strategic_value": number,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"goal_alignment"?: number,"id"?: string,"leverage"?: number,"model"?: string,"next_action"?: string,"output"?: number,"overall_contribution"?: number,"prompt_version"?: string,"provider"?: string,"rationale"?: string,"session_id"?: string,"skill_growth"?: number,"strategic_value"?: number,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "session_evaluations_session_id_user_id_fkey"
+      columns: ["session_id","user_id"]
+isOneToOne: false
+      referencedRelation: "sessions"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
                 },"sessions": {
                   Row: {
                     "category_id": string,"created_at": string,"description": string | null,"difficulty": number | null,"ended_at": string | null,"energy": number | null,"id": string,"notes": string | null,"outcome": string | null,"project_id": string,"started_at": string,"user_id": string

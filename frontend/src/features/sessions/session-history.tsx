@@ -10,12 +10,14 @@ export function SessionHistory({
   sessions,
   projectNames,
   categoryNames,
+  overallScores,
   timeZone,
   now,
 }: {
   sessions: PastSession[];
   projectNames: Names;
   categoryNames: Names;
+  overallScores: Map<string, number>;
   timeZone: string;
   now: Date;
 }) {
@@ -38,6 +40,7 @@ export function SessionHistory({
                 session={session}
                 projectName={projectNames.get(session.projectId) ?? ""}
                 categoryName={categoryNames.get(session.categoryId) ?? ""}
+                overallScore={overallScores.get(session.id) ?? null}
                 timeZone={timeZone}
               />
             ))}
@@ -52,11 +55,13 @@ function SessionItem({
   session,
   projectName,
   categoryName,
+  overallScore,
   timeZone,
 }: {
   session: PastSession;
   projectName: string;
   categoryName: string;
+  overallScore: number | null;
   timeZone: string;
 }) {
   const startedAt = new Date(session.startedAt);
@@ -94,7 +99,11 @@ function SessionItem({
             {session.outcome}
           </p>
         )}
-        <Ratings energy={session.energy} difficulty={session.difficulty} />
+        <Ratings
+          energy={session.energy}
+          difficulty={session.difficulty}
+          overallScore={overallScore}
+        />
       </Link>
     </li>
   );
@@ -103,13 +112,16 @@ function SessionItem({
 function Ratings({
   energy,
   difficulty,
+  overallScore,
 }: {
   energy: number | null;
   difficulty: number | null;
+  overallScore: number | null;
 }) {
   const parts = [
     energy !== null && `Energy ${energy}/5`,
     difficulty !== null && `Difficulty ${difficulty}/5`,
+    overallScore !== null && `AI overall ${overallScore}/5 (estimate)`,
   ].filter(Boolean);
   if (parts.length === 0) return null;
   return (

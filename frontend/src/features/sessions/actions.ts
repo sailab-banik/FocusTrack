@@ -4,6 +4,7 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/features/auth/current-user";
+import { scheduleEvaluation } from "@/features/evaluations/schedule";
 import { getTimeZone } from "@/features/timezone/time-zone";
 import { createClient } from "@/lib/supabase/server";
 import { parseSessionInput, type SessionInput } from "./session-input";
@@ -91,6 +92,7 @@ export async function stopSession(
       message: "This session was already stopped on another device.",
     };
   }
+  scheduleEvaluation(id);
   return { status: "idle" };
 }
 
@@ -105,11 +107,13 @@ export async function createSession(
   if (!parsed.ok) return { status: "error", message: parsed.error };
 
   const supabase = await createClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("sessions")
-    .insert(toRow(parsed.input));
-  const failure = saveFailure(error);
-  if (failure) return failure;
+    .insert(toRow(parsed.input))
+    .select("id")
+    .single();
+  if (error) return saveFailure(error);
+  scheduleEvaluation(data.id);
   redirect(HISTORY_PATH);
 }
 
@@ -130,11 +134,12 @@ export async function updateSession(
     .eq("id", id)
     .not("ended_at", "is", null)
     .select("id");
-  const failure = saveFailure(error);
-  if (failure) return failure;
-  if (data?.length === 0) {
+  if (error) return saveFailure(error);
+  if (data.length === 0) {
     return { status: "error", message: "This session no longer exists." };
   }
+  // The log or times may have changed, so the old evaluation is stale.
+  scheduleEvaluation(id);
   redirect(HISTORY_PATH);
 }
 
@@ -161,8 +166,7 @@ function toRow(input: SessionInput) {
   };
 }
 
-function saveFailure(error: PostgrestError | null): SessionFormState | null {
-  if (!error) return null;
+function saveFailure(error: PostgrestError): SessionFormState {
   if (error.code === FOREIGN_KEY_VIOLATION) {
     return {
       status: "error",
