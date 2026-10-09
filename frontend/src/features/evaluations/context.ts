@@ -1,9 +1,10 @@
 import type { CategoryKind } from "@/features/categories/category-input";
-import { durationSeconds } from "@/features/sessions/duration";
+import { sessionSeconds } from "@/features/sessions/duration";
 
 export type SessionFacts = {
   startedAt: string;
   endedAt: string;
+  pausedSeconds: number;
   categoryId: string;
   description: string | null;
   outcome: string | null;
@@ -115,9 +116,6 @@ export function buildEvaluationContext(input: {
   };
 }
 
-function durationMinutes(session: { startedAt: string; endedAt: string }) {
-  return Math.round(
-    durationSeconds(new Date(session.startedAt), new Date(session.endedAt)) /
-      60,
-  );
+function durationMinutes(session: SessionFacts) {
+  return Math.round(sessionSeconds(session) / 60);
 }

@@ -1,23 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Square } from "lucide-react";
+import { useEffect, useState, useTransition } from "react";
+import { Pause, Play, Square } from "lucide-react";
+import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import type { CategoryKind } from "@/features/categories/category-input";
 import { KindMark } from "@/features/categories/kind-mark";
-import { durationSeconds, formatClock } from "./duration";
+import { pauseSession, resumeSession } from "./actions";
+import { durationSeconds, formatClock, runningSeconds } from "./duration";
 import { StopSessionForm } from "./stop-session-form";
 import { TimerFace } from "./timer-face";
 
 export function RunningTimer({
   sessionId,
   startedAt,
+  pausedAt,
+  pausedSeconds,
   projectName,
   categoryName,
   kind,
 }: {
   sessionId: string;
   startedAt: string;
+  pausedAt: string | null;
+  pausedSeconds: number;
   projectName: string;
   categoryName: string;
   kind: CategoryKind;
@@ -25,6 +31,7 @@ export function RunningTimer({
   const [now, setNow] = useState(() => new Date());
   // Set when Stop is tapped, so time spent writing the log is not counted.
   const [stoppedAt, setStoppedAt] = useState<Date | null>(null);
+  const [switching, startSwitch] = useTransition();
 
   useEffect(() => {
     if (stoppedAt) return;
@@ -32,9 +39,9 @@ export function RunningTimer({
     return () => clearInterval(interval);
   }, [stoppedAt]);
 
-  const elapsed = Math.max(
-    0,
-    durationSeconds(new Date(startedAt), stoppedAt ?? now),
+  const elapsed = runningSeconds(
+    { startedAt, pausedAt, pausedSeconds },
+    stoppedAt ?? now,
   );
 
   return (
@@ -50,10 +57,24 @@ export function RunningTimer({
             <span className="sr-only">({kind})</span>
           </p>
         </div>
-        {stoppedAt && (
+        {stoppedAt ? (
           <p className="text-5xl leading-none font-bold text-muted-foreground tabular-nums font-stretch-[68%]">
             {formatClock(elapsed)}
           </p>
+        ) : (
+          pausedAt && (
+            <p className="flex shrink-0 flex-col items-end gap-1 text-sm text-muted-foreground">
+              Paused for
+              <span
+                className="text-3xl leading-none font-bold text-foreground tabular-nums font-stretch-[68%]"
+                suppressHydrationWarning
+              >
+                {formatClock(
+                  Math.max(0, durationSeconds(new Date(pausedAt), now)),
+                )}
+              </span>
+            </p>
+          )
         )}
       </div>
       {stoppedAt ? (
@@ -67,15 +88,44 @@ export function RunningTimer({
         />
       ) : (
         <>
-          <TimerFace elapsedSeconds={elapsed} />
-          <Button
-            size="lg"
-            className="h-14 rounded-xl text-base"
-            onClick={() => setStoppedAt(new Date())}
-          >
-            <Square className="fill-current" />
-            Stop session
-          </Button>
+          <div className={cn("transition-opacity", pausedAt && "opacity-40")}>
+            <TimerFace elapsedSeconds={elapsed} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {pausedAt ? (
+              <Button
+                size="lg"
+                variant="kind"
+                className="h-14 rounded-xl text-base"
+                disabled={switching}
+                onClick={() => startSwitch(() => resumeSession(sessionId))}
+              >
+                <Play className="fill-current" />
+                Resume
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                variant="outline"
+                className="h-14 rounded-xl text-base"
+                disabled={switching}
+                onClick={() => startSwitch(() => pauseSession(sessionId))}
+              >
+                <Pause className="fill-current" />
+                Pause
+              </Button>
+            )}
+            <Button
+              size="lg"
+              variant={pausedAt ? "outline" : "default"}
+              className="h-14 rounded-xl text-base"
+              disabled={switching}
+              onClick={() => setStoppedAt(new Date())}
+            >
+              <Square className="fill-current" />
+              Stop session
+            </Button>
+          </div>
         </>
       )}
     </div>

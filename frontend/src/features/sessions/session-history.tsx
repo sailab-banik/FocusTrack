@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Category } from "@/features/categories/queries";
 import { KindMark } from "@/features/categories/kind-mark";
 import { formatLocalTime } from "@/features/timezone/zoned-time";
-import { durationSeconds, formatDuration } from "./duration";
+import { formatDuration, sessionSeconds } from "./duration";
 import { dayLabel, executionSeconds, groupSessionsByDay } from "./history";
 import type { PastSession } from "./queries";
 
@@ -124,7 +124,7 @@ function SessionItem({
           <div className="flex items-baseline justify-between gap-3">
             <span className="truncate font-semibold">{projectName}</span>
             <span className="shrink-0 font-medium tabular-nums">
-              {formatDuration(durationSeconds(startedAt, endedAt))}
+              {formatDuration(sessionSeconds(session))}
             </span>
           </div>
           {category && (
@@ -147,6 +147,7 @@ function SessionItem({
             </p>
           )}
           <Ratings
+            pausedSeconds={session.pausedSeconds}
             energy={session.energy}
             difficulty={session.difficulty}
             overallScore={overallScore}
@@ -158,15 +159,19 @@ function SessionItem({
 }
 
 function Ratings({
+  pausedSeconds,
   energy,
   difficulty,
   overallScore,
 }: {
+  pausedSeconds: number;
   energy: number | null;
   difficulty: number | null;
   overallScore: number | null;
 }) {
   const parts = [
+    // Explains why the duration is shorter than the time range.
+    pausedSeconds >= 60 && `Paused ${formatDuration(pausedSeconds)}`,
     energy !== null && `Energy ${energy}/5`,
     difficulty !== null && `Difficulty ${difficulty}/5`,
     overallScore !== null && `AI overall ${overallScore}/5 (estimate)`,

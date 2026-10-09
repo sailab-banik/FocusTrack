@@ -8,6 +8,7 @@ import { getEvaluation } from "@/features/evaluations/queries";
 import { listProjects } from "@/features/projects/queries";
 import { updateSession } from "@/features/sessions/actions";
 import { DeleteSessionButton } from "@/features/sessions/delete-session-button";
+import { formatDuration, sessionSeconds } from "@/features/sessions/duration";
 import { getPastSession } from "@/features/sessions/queries";
 import { SessionForm } from "@/features/sessions/session-form";
 import { isUuid } from "@/lib/uuid";
@@ -35,7 +36,14 @@ export default async function EditSessionPage({
   return (
     <main className="mx-auto grid w-full max-w-2xl gap-8 px-4 py-8 sm:py-12 lg:max-w-5xl lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-x-12">
       <div className="lg:col-span-2">
-        <PageHeader title="Session" />
+        <PageHeader
+          title="Session"
+          description={
+            session.pausedSeconds >= 60
+              ? `${formatDuration(sessionSeconds(session))} worked, ${formatDuration(session.pausedSeconds)} paused.`
+              : `${formatDuration(sessionSeconds(session))} worked.`
+          }
+        />
       </div>
       {/* Beside the form on wide screens, above it on narrow ones. */}
       <div className="lg:sticky lg:top-22 lg:col-start-2 lg:row-span-2 lg:row-start-2 lg:self-start">

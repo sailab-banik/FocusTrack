@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(13);
+select plan(17);
 
 insert into auth.users (id, email) values
   ('11111111-1111-1111-1111-111111111111', 'alice@example.com'),
@@ -67,10 +67,39 @@ select throws_ok(
 );
 
 select lives_ok(
+  $$ update public.sessions set paused_at = now() where ended_at is null $$,
+  'a user can pause their running session'
+);
+
+select throws_ok(
+  $$ update public.sessions set ended_at = now(), description = 'Work', outcome = 'Output'
+     where ended_at is null $$,
+  '23514',
+  null,
+  'a stopped session cannot still be paused'
+);
+
+select throws_ok(
+  $$ update public.sessions set paused_at = started_at - interval '1 minute' where ended_at is null $$,
+  '23514',
+  null,
+  'a pause cannot begin before the session starts'
+);
+
+update public.sessions set paused_at = null where ended_at is null;
+
+select lives_ok(
   $$ update public.sessions
      set ended_at = now(), description = 'Timer UI', outcome = 'Shipped start/stop', energy = 4
      where ended_at is null $$,
   'a user can stop their running session with a log'
+);
+
+select throws_ok(
+  $$ update public.sessions set paused_seconds = 3600 where ended_at is not null $$,
+  '23514',
+  null,
+  'paused time cannot be longer than the session'
 );
 
 select throws_ok(

@@ -5,13 +5,16 @@ export type RunningSession = {
   projectId: string;
   categoryId: string;
   startedAt: string;
+  // Set while a pause is in progress.
+  pausedAt: string | null;
+  pausedSeconds: number;
 };
 
 export async function getRunningSession(): Promise<RunningSession | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("sessions")
-    .select("id, project_id, category_id, started_at")
+    .select("id, project_id, category_id, started_at, paused_at, paused_seconds")
     .is("ended_at", null)
     .maybeSingle();
   if (error) throw error;
@@ -21,6 +24,8 @@ export async function getRunningSession(): Promise<RunningSession | null> {
     projectId: data.project_id,
     categoryId: data.category_id,
     startedAt: data.started_at,
+    pausedAt: data.paused_at,
+    pausedSeconds: data.paused_seconds,
   };
 }
 
@@ -45,6 +50,7 @@ export type PastSession = {
   categoryId: string;
   startedAt: string;
   endedAt: string;
+  pausedSeconds: number;
   // Null only for sessions stopped before logging was required.
   description: string | null;
   outcome: string | null;
@@ -57,7 +63,7 @@ export const HISTORY_PAGE_SIZE = 50;
 
 // One literal string: Supabase infers the row type from it.
 const PAST_SESSION_COLUMNS =
-  "id, project_id, category_id, started_at, ended_at, description, outcome, energy, difficulty, notes";
+  "id, project_id, category_id, started_at, ended_at, paused_seconds, description, outcome, energy, difficulty, notes";
 
 /** Newest first. Fetches one extra row to tell whether older sessions exist. */
 export async function listPastSessions(
@@ -98,6 +104,7 @@ type PastSessionRow = {
   category_id: string;
   started_at: string;
   ended_at: string | null;
+  paused_seconds: number;
   description: string | null;
   outcome: string | null;
   energy: number | null;
@@ -113,6 +120,7 @@ function toPastSession(row: PastSessionRow): PastSession {
     startedAt: row.started_at,
     // The queries filter out running sessions.
     endedAt: row.ended_at!,
+    pausedSeconds: row.paused_seconds,
     description: row.description,
     outcome: row.outcome,
     energy: row.energy,

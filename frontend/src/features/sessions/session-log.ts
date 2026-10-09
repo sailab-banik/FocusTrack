@@ -64,8 +64,14 @@ export function parseLogFields(formData: FormData): Result<LogFields> {
   };
 }
 
-// The stop time comes from the client, so it is capped at the server's clock.
-export function resolveEndedAt(stoppedAt: Date, now: Date): Date {
+// A session stopped while paused ended when the pause began. Otherwise the
+// stop time comes from the client, so it is capped at the server's clock.
+export function resolveEndedAt(
+  stoppedAt: Date,
+  now: Date,
+  pausedAt: Date | null,
+): Date {
+  if (pausedAt) return pausedAt;
   return stoppedAt < now ? stoppedAt : now;
 }
 

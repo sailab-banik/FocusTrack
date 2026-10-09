@@ -20,7 +20,7 @@ export async function evaluateSession(
   const { data: session, error: sessionError } = await supabase
     .from("sessions")
     .select(
-      "id, project_id, category_id, started_at, ended_at, description, outcome, energy, difficulty, notes",
+      "id, project_id, category_id, started_at, ended_at, paused_seconds, description, outcome, energy, difficulty, notes",
     )
     .eq("id", sessionId)
     .not("ended_at", "is", null)
@@ -41,7 +41,9 @@ export async function evaluateSession(
     supabase.from("categories").select("id, name, kind"),
     supabase
       .from("sessions")
-      .select("started_at, ended_at, category_id, description, outcome")
+      .select(
+        "started_at, ended_at, paused_seconds, category_id, description, outcome",
+      )
       .eq("project_id", session.project_id)
       .not("ended_at", "is", null)
       .lt("started_at", session.started_at)
@@ -56,6 +58,7 @@ export async function evaluateSession(
     session: {
       startedAt: session.started_at,
       endedAt: session.ended_at!,
+      pausedSeconds: session.paused_seconds,
       categoryId: session.category_id,
       description: session.description,
       outcome: session.outcome,
@@ -69,6 +72,7 @@ export async function evaluateSession(
     priorSessions: priorResult.data.map((row) => ({
       startedAt: row.started_at,
       endedAt: row.ended_at!,
+      pausedSeconds: row.paused_seconds,
       categoryId: row.category_id,
       description: row.description,
       outcome: row.outcome,

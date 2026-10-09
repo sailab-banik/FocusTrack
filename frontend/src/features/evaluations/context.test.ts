@@ -16,6 +16,7 @@ function prior(
   return {
     startedAt,
     endedAt: endedAt.toISOString(),
+    pausedSeconds: 0,
     categoryId,
     description: "work",
     outcome,
@@ -54,6 +55,17 @@ describe("buildEvaluationContext", () => {
       difficulty: null,
       notes: null,
     });
+  });
+
+  it("leaves paused time out of the duration", () => {
+    const paused = buildEvaluationContext({
+      session: { ...session, pausedSeconds: 600 },
+      projectName: "FocusTrack",
+      goal: null,
+      categories,
+      priorSessions: [],
+    });
+    expect(paused.session.durationMinutes).toBe(25);
   });
 
   it("splits prior project time into execution and preparation", () => {

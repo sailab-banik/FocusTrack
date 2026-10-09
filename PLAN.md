@@ -56,7 +56,7 @@ A timed piece of work.
 | Category | yes | |
 | Start time | yes | |
 | End time | yes | Empty while the timer is running **(proposed)** |
-| Duration | yes | Derived from start/end |
+| Duration | yes | Derived from start/end, minus paused time |
 | Description of work | yes | |
 | Outcome | yes | What was actually produced |
 | Energy | no | |
@@ -197,7 +197,7 @@ These are gaps in the requirements. Each has a proposed default that will be use
 | 3 | Can a project belong to several goals? | One optional goal per project |
 | 4 | Is a session's project mandatory for quick starts? | Yes, as specified; revisit if it slows mobile start |
 | 5 | Where does the running timer live? | In the database, so it carries across phone and desktop |
-| 6 | Does the timer support pause/resume? | No in Phase 1; stop and start a new session |
+| 6 | Does the timer support pause/resume? | Decided: yes. Paused time is left out of the duration; a session stopped while paused ends when the pause began |
 | 7 | Can sessions be added manually after the fact? | Yes, via session history |
 | 8 | What does PWA mean for Phase 1? | Installable and responsive; no offline sync |
 | 9 | What scale do evaluation scores use? | 1–5 per dimension |

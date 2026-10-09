@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { dayLabel, executionSeconds, groupSessionsByDay } from "./history";
 
 function session(id: string, startedAt: string, endedAt: string) {
-  return { id, startedAt, endedAt };
+  return { id, startedAt, endedAt, pausedSeconds: 0 };
 }
 
 describe("groupSessionsByDay", () => {
@@ -21,6 +21,11 @@ describe("groupSessionsByDay", () => {
       },
       { dayKey: "2026-10-08", totalSeconds: 7200, sessions: [sessions[2]] },
     ]);
+  });
+
+  it("leaves paused time out of the day total", () => {
+    const paused = [{ ...sessions[2], pausedSeconds: 1800 }];
+    expect(groupSessionsByDay(paused, "UTC")[0].totalSeconds).toBe(5400);
   });
 
   it("uses the user's timezone for day boundaries", () => {
@@ -45,6 +50,7 @@ describe("executionSeconds", () => {
   ]);
   const timed = (categoryId: string, minutes: number) => ({
     categoryId,
+    pausedSeconds: 0,
     startedAt: "2026-10-09T09:00:00Z",
     endedAt: new Date(
       Date.parse("2026-10-09T09:00:00Z") + minutes * 60_000,
@@ -54,6 +60,11 @@ describe("executionSeconds", () => {
   it("totals only sessions in execution categories", () => {
     const sessions = [timed("build", 90), timed("plan", 45), timed("build", 30)];
     expect(executionSeconds(sessions, categories)).toBe(7200);
+  });
+
+  it("leaves out paused time", () => {
+    const sessions = [{ ...timed("build", 90), pausedSeconds: 600 }];
+    expect(executionSeconds(sessions, categories)).toBe(4800);
   });
 
   it("is zero when every session is preparation", () => {

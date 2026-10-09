@@ -1,8 +1,12 @@
 import type { CategoryKind } from "@/features/categories/category-input";
 import { localDayKey } from "@/features/timezone/zoned-time";
-import { durationSeconds } from "./duration";
+import { sessionSeconds } from "./duration";
 
-type TimedSession = { startedAt: string; endedAt: string };
+type TimedSession = {
+  startedAt: string;
+  endedAt: string;
+  pausedSeconds: number;
+};
 
 export type DayGroup<T> = {
   dayKey: string;
@@ -21,10 +25,7 @@ export function groupSessionsByDay<T extends TimedSession>(
   const groups: DayGroup<T>[] = [];
   for (const session of sessions) {
     const dayKey = localDayKey(new Date(session.startedAt), timeZone);
-    const seconds = durationSeconds(
-      new Date(session.startedAt),
-      new Date(session.endedAt),
-    );
+    const seconds = sessionSeconds(session);
     const last = groups.at(-1);
     if (last?.dayKey === dayKey) {
       last.sessions.push(session);
@@ -43,11 +44,7 @@ export function executionSeconds(
 ): number {
   return sessions
     .filter((s) => categories.get(s.categoryId)?.kind === "execution")
-    .reduce(
-      (total, s) =>
-        total + durationSeconds(new Date(s.startedAt), new Date(s.endedAt)),
-      0,
-    );
+    .reduce((total, s) => total + sessionSeconds(s), 0);
 }
 
 /** "Today", "Yesterday", or e.g. "Thu, Oct 8" for a YYYY-MM-DD day key. */

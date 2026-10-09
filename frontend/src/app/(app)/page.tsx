@@ -55,6 +55,8 @@ function ActiveSession({
     <RunningTimer
       sessionId={running.id}
       startedAt={running.startedAt}
+      pausedAt={running.pausedAt}
+      pausedSeconds={running.pausedSeconds}
       projectName={project.name}
       categoryName={category.name}
       kind={category.kind}

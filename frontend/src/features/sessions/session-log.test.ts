@@ -74,11 +74,18 @@ describe("resolveEndedAt", () => {
 
   it("keeps a stop time in the past", () => {
     const stoppedAt = new Date(STOPPED_AT);
-    expect(resolveEndedAt(stoppedAt, now)).toEqual(stoppedAt);
+    expect(resolveEndedAt(stoppedAt, now, null)).toEqual(stoppedAt);
   });
 
   it("caps a stop time in the future at now", () => {
     const future = new Date("2026-10-09T11:00:00.000Z");
-    expect(resolveEndedAt(future, now)).toEqual(now);
+    expect(resolveEndedAt(future, now, null)).toEqual(now);
+  });
+
+  it("ends a paused session when the pause began", () => {
+    const pausedAt = new Date("2026-10-09T10:05:00.000Z");
+    expect(resolveEndedAt(new Date(STOPPED_AT), now, pausedAt)).toEqual(
+      pausedAt,
+    );
   });
 });
