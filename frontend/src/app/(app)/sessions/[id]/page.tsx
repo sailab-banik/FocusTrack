@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { PageHeader } from "@/components/page-header";
 import { getAiProvider } from "@/features/ai/get-provider";
 import { listCategories } from "@/features/categories/queries";
 import { EvaluationPanel } from "@/features/evaluations/evaluation-panel";
@@ -32,14 +33,19 @@ export default async function EditSessionPage({
   if (!session) notFound();
 
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-4">
-      <h1 className="text-xl font-semibold tracking-tight">Session</h1>
-      <EvaluationPanel
-        sessionId={session.id}
-        evaluation={evaluation}
-        aiConfigured={getAiProvider() !== null}
-        logged={Boolean(session.description && session.outcome)}
-      />
+    <main className="mx-auto grid w-full max-w-2xl gap-8 px-4 py-8 sm:py-12 lg:max-w-5xl lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-x-12">
+      <div className="lg:col-span-2">
+        <PageHeader title="Session" />
+      </div>
+      {/* Beside the form on wide screens, above it on narrow ones. */}
+      <div className="lg:sticky lg:top-22 lg:col-start-2 lg:row-span-2 lg:row-start-2 lg:self-start">
+        <EvaluationPanel
+          sessionId={session.id}
+          evaluation={evaluation}
+          aiConfigured={getAiProvider() !== null}
+          logged={Boolean(session.description && session.outcome)}
+        />
+      </div>
       <SessionForm
         action={updateSession}
         sessionId={session.id}
@@ -62,7 +68,7 @@ export default async function EditSessionPage({
         categories={categories}
         submitLabel="Save changes"
       />
-      <div className="border-t pt-4">
+      <div className="border-t pt-6">
         <DeleteSessionButton sessionId={session.id} />
       </div>
     </main>

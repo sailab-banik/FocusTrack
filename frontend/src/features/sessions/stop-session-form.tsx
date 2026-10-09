@@ -25,7 +25,7 @@ export function StopSessionForm({
   );
 
   return (
-    <form action={formAction} className="flex w-full flex-col gap-5 text-left">
+    <form action={formAction} className="flex flex-col gap-6">
       <input type="hidden" name="id" value={sessionId} />
       <input type="hidden" name="stoppedAt" value={stoppedAt.toISOString()} />
 
@@ -73,7 +73,7 @@ export function StopSessionForm({
       <div className="flex flex-col gap-2">
         <Label htmlFor="notes">
           Notes{" "}
-          <span className="font-normal text-muted-foreground">(optional)</span>
+          <span className="font-normal text-muted-foreground">optional</span>
         </Label>
         <Textarea
           id="notes"
@@ -93,7 +93,7 @@ export function StopSessionForm({
         <Button
           type="submit"
           size="lg"
-          className="h-14 text-base"
+          className="h-14 rounded-xl text-base"
           disabled={pending}
         >
           {pending ? "Saving…" : "Save session"}

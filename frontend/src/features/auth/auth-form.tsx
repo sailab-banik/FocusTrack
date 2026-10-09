@@ -42,11 +42,11 @@ export function AuthForm({ mode }: { mode: keyof typeof MODES }) {
 
   if (state.status === "check-email") {
     return (
-      <div className="flex flex-col gap-2 text-center">
-        <h1 className="text-xl font-semibold tracking-tight">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-2xl font-semibold tracking-tight font-stretch-[108%]">
           Check your email
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground">
           We sent a confirmation link to {state.email}. Open it to finish
           creating your account.
         </p>
@@ -55,8 +55,10 @@ export function AuthForm({ mode }: { mode: keyof typeof MODES }) {
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold tracking-tight">{config.title}</h1>
+    <form action={formAction} className="flex flex-col gap-5">
+      <h1 className="text-2xl font-semibold tracking-tight font-stretch-[108%]">
+        {config.title}
+      </h1>
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="email">Email</Label>
@@ -66,7 +68,6 @@ export function AuthForm({ mode }: { mode: keyof typeof MODES }) {
           type="email"
           autoComplete="email"
           required
-          className="h-10"
         />
       </div>
 
@@ -79,7 +80,6 @@ export function AuthForm({ mode }: { mode: keyof typeof MODES }) {
           autoComplete={config.passwordAutoComplete}
           minLength={MIN_PASSWORD_LENGTH}
           required
-          className="h-10"
         />
       </div>
 
@@ -89,7 +89,7 @@ export function AuthForm({ mode }: { mode: keyof typeof MODES }) {
         </p>
       )}
 
-      <Button type="submit" size="lg" className="h-10" disabled={pending}>
+      <Button type="submit" size="lg" className="h-11" disabled={pending}>
         {pending ? config.pending : config.submit}
       </Button>
 
@@ -97,7 +97,7 @@ export function AuthForm({ mode }: { mode: keyof typeof MODES }) {
         {config.switchPrompt}{" "}
         <Link
           href={config.switchHref}
-          className="text-foreground underline-offset-4 hover:underline"
+          className="font-medium text-foreground underline underline-offset-4"
         >
           {config.switchLabel}
         </Link>

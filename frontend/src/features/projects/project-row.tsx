@@ -1,6 +1,8 @@
 "use client";
 
 import { useActionState, useState, useTransition } from "react";
+import { Target } from "lucide-react";
+import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Goal } from "@/features/goals/queries";
@@ -35,18 +37,21 @@ export function ProjectRow({
 
   if (!editing) {
     return (
-      <li className="flex items-center justify-between gap-2 py-2">
-        <div className="flex min-w-0 flex-col">
+      <li className="flex items-center justify-between gap-2 py-3">
+        <div className="flex min-w-0 flex-col gap-0.5">
           <span
-            className={
-              project.archived ? "truncate text-muted-foreground" : "truncate"
-            }
+            className={cn(
+              "truncate font-medium",
+              project.archived && "text-muted-foreground",
+            )}
           >
             {project.name}
           </span>
           {goal && (
-            <span className="truncate text-xs text-muted-foreground">
-              → {goal.title}
+            <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Target className="size-3.5 shrink-0" aria-hidden />
+              <span className="sr-only">Goal:</span>
+              <span className="truncate">{goal.title}</span>
             </span>
           )}
         </div>
@@ -79,7 +84,7 @@ export function ProjectRow({
   );
 
   return (
-    <li className="py-2">
+    <li className="py-3">
       <form action={formAction} className="flex flex-col gap-2">
         <input type="hidden" name="id" value={project.id} />
         <div className="flex flex-wrap gap-2">
@@ -90,13 +95,13 @@ export function ProjectRow({
             maxLength={MAX_PROJECT_NAME_LENGTH}
             required
             autoFocus
-            className="h-10 min-w-40 flex-1"
+            className="min-w-40 flex-1"
           />
           <select
             name="goalId"
             defaultValue={project.goalId ?? ""}
             aria-label="Goal"
-            className="h-10 max-w-full min-w-40 flex-1 rounded-lg border border-input bg-transparent px-2.5 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
+            className="h-10 max-w-full min-w-40 flex-1 rounded-lg border border-input bg-card px-2.5 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
           >
             <option value="">No goal</option>
             {goalOptions.map((g) => (

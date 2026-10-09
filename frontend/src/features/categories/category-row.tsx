@@ -29,9 +29,9 @@ export function CategoryRow({ category }: { category: Category }) {
 
   if (!editing) {
     return (
-      <li className="flex flex-col gap-1 py-2">
+      <li className="flex flex-col gap-1 py-3">
         <div className="flex items-center justify-between gap-2">
-          <span className="truncate">{category.name}</span>
+          <span className="truncate font-medium">{category.name}</span>
           <div className="flex shrink-0 gap-1">
             <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>
               Edit
@@ -64,7 +64,7 @@ export function CategoryRow({ category }: { category: Category }) {
   }
 
   return (
-    <li className="py-2">
+    <li className="py-3">
       <form action={formAction} className="flex flex-col gap-2">
         <input type="hidden" name="id" value={category.id} />
         <div className="flex flex-wrap gap-2">
@@ -75,7 +75,7 @@ export function CategoryRow({ category }: { category: Category }) {
             maxLength={MAX_CATEGORY_NAME_LENGTH}
             required
             autoFocus
-            className="h-10 min-w-40 flex-1"
+            className="min-w-40 flex-1"
           />
           <KindSelect defaultValue={category.kind} />
           <div className="flex gap-1">

@@ -24,10 +24,15 @@ export function NewCategoryForm() {
           aria-label="Category name"
           maxLength={MAX_CATEGORY_NAME_LENGTH}
           required
-          className="h-10 min-w-40 flex-1"
+          className="min-w-40 flex-1"
         />
         <KindSelect defaultValue="execution" />
-        <Button type="submit" size="lg" className="h-10" disabled={pending}>
+        <Button
+          type="submit"
+          size="lg"
+          className="h-10 px-4"
+          disabled={pending}
+        >
           {pending ? "Adding…" : "Add"}
         </Button>
       </div>

@@ -11,7 +11,7 @@ export function GoalList({
 }) {
   if (goals.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground">
+      <p className="text-muted-foreground">
         No goals yet. Add the long-term outcomes your work should move toward.
       </p>
     );
@@ -24,8 +24,8 @@ export function GoalList({
 
   return (
     <div className="flex flex-col gap-8">
-      <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-medium">Active</h2>
+      <section className="flex flex-col gap-3">
+        <h2 className="text-sm font-medium text-muted-foreground">Active</h2>
         {active.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             All goals are archived.
@@ -44,8 +44,8 @@ export function GoalList({
       </section>
 
       {archived.length > 0 && (
-        <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-medium">Archived</h2>
+        <section className="flex flex-col gap-3">
+          <h2 className="text-sm font-medium text-muted-foreground">Archived</h2>
           <ul className="flex flex-col gap-3">
             {archived.map((goal) => (
               <GoalCard

@@ -1,3 +1,4 @@
+import type { CategoryKind } from "@/features/categories/category-input";
 import { localDayKey } from "@/features/timezone/zoned-time";
 import { durationSeconds } from "./duration";
 
@@ -33,6 +34,20 @@ export function groupSessionsByDay<T extends TimedSession>(
     }
   }
   return groups;
+}
+
+/** Seconds spent in execution categories. The rest of a total is preparation. */
+export function executionSeconds(
+  sessions: (TimedSession & { categoryId: string })[],
+  categories: Map<string, { kind: CategoryKind }>,
+): number {
+  return sessions
+    .filter((s) => categories.get(s.categoryId)?.kind === "execution")
+    .reduce(
+      (total, s) =>
+        total + durationSeconds(new Date(s.startedAt), new Date(s.endedAt)),
+      0,
+    );
 }
 
 /** "Today", "Yesterday", or e.g. "Thu, Oct 8" for a YYYY-MM-DD day key. */

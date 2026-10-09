@@ -1,12 +1,11 @@
 "use client";
 
 import { useActionState } from "react";
+import { Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { startSession, type SessionFormState } from "./actions";
-import { ChoiceChips } from "./choice-chips";
+import { ChoiceChips, type ChoiceOption } from "./choice-chips";
 import type { LastUsed } from "./queries";
-
-type Option = { id: string; name: string };
 
 const initialState: SessionFormState = { status: "idle" };
 
@@ -15,8 +14,8 @@ export function StartSessionForm({
   categories,
   lastUsed,
 }: {
-  projects: Option[];
-  categories: Option[];
+  projects: ChoiceOption[];
+  categories: ChoiceOption[];
   lastUsed: LastUsed | null;
 }) {
   const [state, formAction, pending] = useActionState(
@@ -48,9 +47,11 @@ export function StartSessionForm({
       <Button
         type="submit"
         size="lg"
-        className="h-14 text-base"
+        variant="kind"
+        className="h-14 rounded-xl text-base"
         disabled={pending}
       >
+        <Play className="fill-current" />
         {pending ? "Starting…" : "Start session"}
       </Button>
     </form>

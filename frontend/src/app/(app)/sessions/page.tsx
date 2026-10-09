@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Plus } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { listCategories } from "@/features/categories/queries";
 import { getOverallScores } from "@/features/evaluations/queries";
@@ -26,19 +28,26 @@ export default async function HistoryPage({
   const oldest = sessions.at(-1);
 
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-4">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="text-xl font-semibold tracking-tight">History</h1>
-        <Link
-          href="/sessions/new"
-          className={buttonVariants({ variant: "outline" })}
-        >
-          Add session
-        </Link>
-      </div>
+    <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-8 sm:py-12">
+      <PageHeader
+        title="History"
+        action={
+          <Link
+            href="/sessions/new"
+            className={buttonVariants({
+              variant: "outline",
+              size: "lg",
+              className: "h-10 px-3.5",
+            })}
+          >
+            <Plus />
+            Add session
+          </Link>
+        }
+      />
 
       {sessions.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground">
           {beforeDate
             ? "No older sessions."
             : "No sessions yet. Start one from the timer, or add one you " +
@@ -48,7 +57,7 @@ export default async function HistoryPage({
         <SessionHistory
           sessions={sessions}
           projectNames={new Map(projects.map((p) => [p.id, p.name]))}
-          categoryNames={new Map(categories.map((c) => [c.id, c.name]))}
+          categories={new Map(categories.map((c) => [c.id, c]))}
           overallScores={overallScores}
           timeZone={timeZone}
           now={new Date()}
@@ -59,8 +68,9 @@ export default async function HistoryPage({
         <Link
           href={`/sessions?before=${encodeURIComponent(oldest.startedAt)}`}
           className={buttonVariants({
-            variant: "ghost",
-            className: "self-center",
+            variant: "outline",
+            size: "lg",
+            className: "h-10 self-center px-4",
           })}
         >
           Show older sessions

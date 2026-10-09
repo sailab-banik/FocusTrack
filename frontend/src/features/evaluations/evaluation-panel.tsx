@@ -14,10 +14,10 @@ export function EvaluationPanel({
   logged: boolean;
 }) {
   return (
-    <section className="flex flex-col gap-4 rounded-lg border p-4">
-      <div className="flex flex-col gap-0.5">
-        <h2 className="text-sm font-medium">AI evaluation</h2>
-        <p className="text-xs text-muted-foreground">
+    <section className="flex flex-col gap-5 rounded-2xl border bg-card p-5">
+      <div className="flex flex-col gap-1">
+        <h2 className="text-lg font-semibold tracking-tight">AI evaluation</h2>
+        <p className="text-sm text-muted-foreground">
           AI-assisted estimates, not objective measurements.
         </p>
       </div>
@@ -45,15 +45,18 @@ function PanelBody({
   if (!aiConfigured) {
     return (
       <p className="text-sm text-muted-foreground">
-        AI evaluation is off. Set <code>OPENAI_API_KEY</code> on the server to
-        turn it on.
+        AI evaluation is off. Set{" "}
+        <code className="rounded-sm bg-muted px-1 py-0.5 text-xs text-foreground">
+          OPENAI_API_KEY
+        </code>{" "}
+        on the server to turn it on.
       </p>
     );
   }
   if (!logged) {
     return (
       <p className="text-sm text-muted-foreground">
-        Add a description and outcome below to get an evaluation.
+        Add a description and outcome to get an evaluation.
       </p>
     );
   }
@@ -70,24 +73,28 @@ function PanelBody({
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
+    <div className="flex flex-col gap-5">
+      <dl className="flex flex-col gap-2.5">
         {DIMENSIONS.map((dimension) => (
-          <div key={dimension.key} className="flex flex-col gap-1">
-            <dt className="text-xs text-muted-foreground">{dimension.label}</dt>
+          <div
+            key={dimension.key}
+            className="flex items-center justify-between gap-4"
+          >
+            <dt className="text-sm text-muted-foreground">{dimension.label}</dt>
             <dd>
               <ScoreBar score={evaluation[dimension.key]} />
             </dd>
           </div>
         ))}
       </dl>
-      <p className="text-sm">{evaluation.rationale}</p>
-      <p className="text-sm">
-        <span className="font-medium">Next:</span> {evaluation.next_action}
+      <p className="text-sm leading-relaxed">{evaluation.rationale}</p>
+      <p className="rounded-xl bg-muted p-3.5 text-sm leading-relaxed">
+        <span className="font-semibold">Next:</span> {evaluation.next_action}
       </p>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs text-muted-foreground">
-          {evaluation.model} · {evaluation.promptVersion}
+        <p className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+          <span>{evaluation.model}</span>
+          <span>{evaluation.promptVersion}</span>
         </p>
         <EvaluateButton sessionId={sessionId} label="Re-evaluate" />
       </div>
@@ -98,7 +105,7 @@ function PanelBody({
 function ScoreBar({ score }: { score: number }) {
   return (
     <div
-      className="flex items-center gap-2"
+      className="flex items-center gap-2.5"
       aria-label={`${score} out of 5`}
     >
       <div className="flex gap-0.5" aria-hidden>
@@ -107,13 +114,15 @@ function ScoreBar({ score }: { score: number }) {
             key={step}
             className={
               step <= score
-                ? "h-2 w-4 rounded-sm bg-foreground"
-                : "h-2 w-4 rounded-sm bg-muted"
+                ? "h-2 w-5 rounded-full bg-foreground"
+                : "h-2 w-5 rounded-full bg-border"
             }
           />
         ))}
       </div>
-      <span className="text-xs tabular-nums">{score}/5</span>
+      <span className="w-6 text-right text-sm font-medium tabular-nums">
+        {score}/5
+      </span>
     </div>
   );
 }

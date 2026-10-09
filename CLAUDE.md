@@ -173,6 +173,9 @@ Comments:
 - The timer is one of the most prominent interactions.
 - Mobile: fast session start/stop, quick category/project selection, minimal typing.
 - Desktop: rich analytics, timeline, project view, AI insights, goal progress.
+- Color: tokens live in `src/app/globals.css`. The interface is cool and neutral; the warm `execution` color is reserved for execution work and `preparation` is its cool counterpart. Never use either as decoration. Set `data-kind` on an element and use `bg-kind` / `text-on-kind`, and pair color with `KindMark` so kind never depends on color alone.
+- Theme follows the system (`prefers-color-scheme`); there is no toggle. Check new UI in both.
+- Type: Archivo only. The condensed width is for the timer clock; do not add a second family or a monospace for numbers (use `tabular-nums`).
 
 ## Definition of done
 

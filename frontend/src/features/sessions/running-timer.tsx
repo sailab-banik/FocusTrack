@@ -1,20 +1,26 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { CategoryKind } from "@/features/categories/category-input";
+import { KindMark } from "@/features/categories/kind-mark";
 import { durationSeconds, formatClock } from "./duration";
 import { StopSessionForm } from "./stop-session-form";
+import { TimerFace } from "./timer-face";
 
 export function RunningTimer({
   sessionId,
   startedAt,
   projectName,
   categoryName,
+  kind,
 }: {
   sessionId: string;
   startedAt: string;
   projectName: string;
   categoryName: string;
+  kind: CategoryKind;
 }) {
   const [now, setNow] = useState(() => new Date());
   // Set when Stop is tapped, so time spent writing the log is not counted.
@@ -32,22 +38,23 @@ export function RunningTimer({
   );
 
   return (
-    <div className="flex flex-col items-center gap-6 text-center">
-      <div className="flex flex-col gap-1">
-        <p className="text-sm text-muted-foreground">
-          {projectName} · {categoryName}
-        </p>
-        {/* Server and client clocks differ by the render delay. */}
-        <p
-          className={
-            stoppedAt
-              ? "font-mono text-4xl font-semibold text-muted-foreground tabular-nums"
-              : "font-mono text-6xl font-semibold tabular-nums"
-          }
-          suppressHydrationWarning
-        >
-          {formatClock(elapsed)}
-        </p>
+    <div data-kind={kind} className="flex flex-col gap-8">
+      <div className="flex items-end justify-between gap-4">
+        <div className="flex min-w-0 flex-col gap-1">
+          <h1 className="truncate text-2xl font-semibold tracking-tight font-stretch-[108%]">
+            {projectName}
+          </h1>
+          <p className="flex items-center gap-2 text-muted-foreground">
+            <KindMark kind={kind} />
+            {categoryName}
+            <span className="sr-only">({kind})</span>
+          </p>
+        </div>
+        {stoppedAt && (
+          <p className="text-5xl leading-none font-bold text-muted-foreground tabular-nums font-stretch-[68%]">
+            {formatClock(elapsed)}
+          </p>
+        )}
       </div>
       {stoppedAt ? (
         <StopSessionForm
@@ -59,14 +66,17 @@ export function RunningTimer({
           }}
         />
       ) : (
-        <Button
-          size="lg"
-          variant="destructive"
-          className="h-14 w-full text-base"
-          onClick={() => setStoppedAt(new Date())}
-        >
-          Stop session
-        </Button>
+        <>
+          <TimerFace elapsedSeconds={elapsed} />
+          <Button
+            size="lg"
+            className="h-14 rounded-xl text-base"
+            onClick={() => setStoppedAt(new Date())}
+          >
+            <Square className="fill-current" />
+            Stop session
+          </Button>
+        </>
       )}
     </div>
   );

@@ -7,11 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { SessionFormState } from "./actions";
-import { ChoiceChips } from "./choice-chips";
+import { ChoiceChips, type ChoiceOption } from "./choice-chips";
 import { RatingChips } from "./rating-chips";
 import { LOG_LIMITS } from "./session-log";
-
-type Option = { id: string; name: string };
 
 export type SessionFormValues = {
   projectId: string | undefined;
@@ -44,14 +42,14 @@ export function SessionForm({
   sessionId: string | null;
   values: SessionFormValues;
   maxDateTime: string;
-  projects: Option[];
-  categories: Option[];
+  projects: ChoiceOption[];
+  categories: ChoiceOption[];
   submitLabel: string;
 }) {
   const [state, formAction, pending] = useActionState(action, initialState);
 
   return (
-    <form action={formAction} className="flex flex-col gap-5">
+    <form action={formAction} className="flex flex-col gap-6">
       {sessionId && <input type="hidden" name="id" value={sessionId} />}
 
       <ChoiceChips
@@ -79,7 +77,6 @@ export function SessionForm({
             defaultValue={values.startedAt}
             max={maxDateTime}
             required
-            className="h-10"
           />
         </div>
         <div className="flex flex-col gap-2">
@@ -91,7 +88,6 @@ export function SessionForm({
             defaultValue={values.endedAt}
             max={maxDateTime}
             required
-            className="h-10"
           />
         </div>
       </div>
@@ -140,7 +136,7 @@ export function SessionForm({
       <div className="flex flex-col gap-2">
         <Label htmlFor="notes">
           Notes{" "}
-          <span className="font-normal text-muted-foreground">(optional)</span>
+          <span className="font-normal text-muted-foreground">optional</span>
         </Label>
         <Textarea
           id="notes"

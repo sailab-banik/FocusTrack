@@ -1,8 +1,11 @@
+import { ListSkeleton } from "@/components/list-skeleton";
+import { PageHeader } from "@/components/page-header";
+
 export default function GoalsLoading() {
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-4">
-      <h1 className="text-xl font-semibold tracking-tight">Goals</h1>
-      <p className="text-sm text-muted-foreground">Loading goals…</p>
+    <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-8 sm:py-12">
+      <PageHeader title="Goals" />
+      <ListSkeleton label="Loading goals" />
     </main>
   );
 }

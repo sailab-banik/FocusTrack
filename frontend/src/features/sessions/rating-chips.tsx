@@ -30,7 +30,7 @@ export function RatingChips({
         <>
           {label}{" "}
           <span className="font-normal text-muted-foreground">
-            (optional · 1 {low}, 5 {high})
+            optional, 1 {low} to 5 {high}
           </span>
         </>
       }

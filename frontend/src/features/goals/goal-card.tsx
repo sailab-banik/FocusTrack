@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useState, useTransition } from "react";
+import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import {
   setGoalArchived,
@@ -33,7 +34,7 @@ export function GoalCard({
 
   if (editing) {
     return (
-      <li className="rounded-lg border p-4">
+      <li className="rounded-2xl border bg-card p-5">
         <form action={formAction} className="flex flex-col gap-4">
           <input type="hidden" name="id" value={goal.id} />
           <GoalFields
@@ -66,13 +67,14 @@ export function GoalCard({
   }
 
   return (
-    <li className="flex flex-col gap-3 rounded-lg border p-4">
+    <li className="flex flex-col gap-4 rounded-2xl border bg-card p-5">
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 flex-col gap-1">
           <h3
-            className={
-              goal.archived ? "font-medium text-muted-foreground" : "font-medium"
-            }
+            className={cn(
+              "text-lg font-semibold tracking-tight",
+              goal.archived && "text-muted-foreground",
+            )}
           >
             {goal.title}
           </h3>
@@ -101,7 +103,10 @@ export function GoalCard({
       {projectNames.length > 0 ? (
         <ul className="flex flex-wrap gap-2">
           {projectNames.map((name) => (
-            <li key={name} className="rounded-md bg-muted px-2 py-1 text-xs">
+            <li
+              key={name}
+              className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium"
+            >
               {name}
             </li>
           ))}
@@ -109,7 +114,10 @@ export function GoalCard({
       ) : (
         <p className="text-sm text-muted-foreground">
           No projects serve this goal yet.{" "}
-          <Link href="/projects" className="underline-offset-4 hover:underline">
+          <Link
+            href="/projects"
+            className="font-medium text-foreground underline underline-offset-4"
+          >
             Link one from Projects.
           </Link>
         </p>

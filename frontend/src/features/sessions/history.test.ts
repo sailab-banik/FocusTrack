@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dayLabel, groupSessionsByDay } from "./history";
+import { dayLabel, executionSeconds, groupSessionsByDay } from "./history";
 
 function session(id: string, startedAt: string, endedAt: string) {
   return { id, startedAt, endedAt };
@@ -35,6 +35,29 @@ describe("groupSessionsByDay", () => {
 
   it("returns no groups for no sessions", () => {
     expect(groupSessionsByDay([], "UTC")).toEqual([]);
+  });
+});
+
+describe("executionSeconds", () => {
+  const categories = new Map([
+    ["build", { kind: "execution" as const }],
+    ["plan", { kind: "preparation" as const }],
+  ]);
+  const timed = (categoryId: string, minutes: number) => ({
+    categoryId,
+    startedAt: "2026-10-09T09:00:00Z",
+    endedAt: new Date(
+      Date.parse("2026-10-09T09:00:00Z") + minutes * 60_000,
+    ).toISOString(),
+  });
+
+  it("totals only sessions in execution categories", () => {
+    const sessions = [timed("build", 90), timed("plan", 45), timed("build", 30)];
+    expect(executionSeconds(sessions, categories)).toBe(7200);
+  });
+
+  it("is zero when every session is preparation", () => {
+    expect(executionSeconds([timed("plan", 45)], categories)).toBe(0);
   });
 });
 

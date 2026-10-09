@@ -1,9 +1,15 @@
 import Link from "next/link";
-import { listCategories } from "@/features/categories/queries";
-import { listProjects } from "@/features/projects/queries";
-import { getLastUsed, getRunningSession } from "@/features/sessions/queries";
+import { buttonVariants } from "@/components/ui/button";
+import { listCategories, type Category } from "@/features/categories/queries";
+import { listProjects, type Project } from "@/features/projects/queries";
+import {
+  getLastUsed,
+  getRunningSession,
+  type RunningSession,
+} from "@/features/sessions/queries";
 import { RunningTimer } from "@/features/sessions/running-timer";
 import { StartSessionForm } from "@/features/sessions/start-session-form";
+import { TimerFace } from "@/features/sessions/timer-face";
 
 export default async function TimerPage() {
   const [running, projects, categories, lastUsed] = await Promise.all([
@@ -14,13 +20,12 @@ export default async function TimerPage() {
   ]);
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 p-4">
+    <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-8 px-4 py-8">
       {running ? (
-        <RunningTimer
-          sessionId={running.id}
-          startedAt={running.startedAt}
-          projectName={nameOf(projects, running.projectId)}
-          categoryName={nameOf(categories, running.categoryId)}
+        <ActiveSession
+          running={running}
+          projects={projects}
+          categories={categories}
         />
       ) : (
         <StartPanel
@@ -30,6 +35,30 @@ export default async function TimerPage() {
         />
       )}
     </main>
+  );
+}
+
+function ActiveSession({
+  running,
+  projects,
+  categories,
+}: {
+  running: RunningSession;
+  projects: Project[];
+  categories: Category[];
+}) {
+  // Foreign keys keep a session's project and category from being removed.
+  const project = projects.find((p) => p.id === running.projectId)!;
+  const category = categories.find((c) => c.id === running.categoryId)!;
+
+  return (
+    <RunningTimer
+      sessionId={running.id}
+      startedAt={running.startedAt}
+      projectName={project.name}
+      categoryName={category.name}
+      kind={category.kind}
+    />
   );
 }
 
@@ -53,11 +82,20 @@ function StartPanel({
     );
   }
   return (
-    <StartSessionForm
-      projects={projects}
-      categories={categories}
-      lastUsed={lastUsed}
-    />
+    <>
+      {/* Decorative at rest, so short phones drop it to keep Start in view. */}
+      <div
+        aria-hidden
+        className="hidden text-foreground/25 sm:block [@media(min-height:760px)]:block"
+      >
+        <TimerFace elapsedSeconds={0} />
+      </div>
+      <StartSessionForm
+        projects={projects}
+        categories={categories}
+        lastUsed={lastUsed}
+      />
+    </>
   );
 }
 
@@ -71,18 +109,14 @@ function EmptyState({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center gap-3 text-center">
-      <p className="text-sm text-muted-foreground">{children}</p>
+    <div className="flex flex-col items-start gap-4">
+      <p className="text-lg text-muted-foreground">{children}</p>
       <Link
         href={href}
-        className="text-sm font-medium underline-offset-4 hover:underline"
+        className={buttonVariants({ size: "lg", className: "h-10 px-4" })}
       >
         {linkText}
       </Link>
     </div>
   );
-}
-
-function nameOf(options: { id: string; name: string }[], id: string): string {
-  return options.find((option) => option.id === id)?.name ?? "";
 }

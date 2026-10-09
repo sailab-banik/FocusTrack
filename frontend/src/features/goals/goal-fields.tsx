@@ -24,13 +24,12 @@ export function GoalFields({
           placeholder="e.g. Become a stronger AI/backend engineer"
           maxLength={GOAL_LIMITS.title}
           required
-          className="h-10"
         />
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor={`${idPrefix}-description`}>
           What does success look like?{" "}
-          <span className="font-normal text-muted-foreground">(optional)</span>
+          <span className="font-normal text-muted-foreground">optional</span>
         </Label>
         <Textarea
           id={`${idPrefix}-description`}

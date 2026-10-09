@@ -23,9 +23,14 @@ export function NewProjectForm() {
           aria-label="Project name"
           maxLength={MAX_PROJECT_NAME_LENGTH}
           required
-          className="h-10 flex-1"
+          className="flex-1"
         />
-        <Button type="submit" size="lg" className="h-10" disabled={pending}>
+        <Button
+          type="submit"
+          size="lg"
+          className="h-10 px-4"
+          disabled={pending}
+        >
           {pending ? "Adding…" : "Add"}
         </Button>
       </div>

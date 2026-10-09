@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageHeader } from "@/components/page-header";
 import { listCategories } from "@/features/categories/queries";
 import { listProjects } from "@/features/projects/queries";
 import { createSession } from "@/features/sessions/actions";
@@ -22,13 +23,11 @@ export default async function NewSessionPage() {
   const nowInput = toLocalDateTimeInput(now, timeZone);
 
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-4">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight">Add session</h1>
-        <p className="text-sm text-muted-foreground">
-          For work you did but did not time.
-        </p>
-      </div>
+    <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-8 sm:py-12">
+      <PageHeader
+        title="Add session"
+        description="For work you did but did not time."
+      />
       <SessionForm
         action={createSession}
         sessionId={null}

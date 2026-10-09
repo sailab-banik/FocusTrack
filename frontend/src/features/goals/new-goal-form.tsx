@@ -21,7 +21,7 @@ export function NewGoalForm() {
       <Button
         type="submit"
         size="lg"
-        className="h-10 self-start"
+        className="h-10 self-start px-4"
         disabled={pending}
       >
         {pending ? "Adding…" : "Add goal"}
