@@ -7,11 +7,13 @@ export function ChoiceChips({
   legend,
   options,
   defaultValue,
+  required,
 }: {
   name: string;
-  legend: string;
+  legend: React.ReactNode;
   options: Option[];
   defaultValue: string | undefined;
+  required: boolean;
 }) {
   return (
     <fieldset className="flex flex-col gap-2">
@@ -20,14 +22,14 @@ export function ChoiceChips({
         {options.map((option) => (
           <label
             key={option.id}
-            className="flex h-10 cursor-pointer items-center rounded-lg border px-3 text-sm transition-colors select-none hover:bg-muted has-checked:border-primary has-checked:bg-primary has-checked:text-primary-foreground has-focus-visible:ring-3 has-focus-visible:ring-ring/50"
+            className="flex h-10 min-w-10 cursor-pointer items-center justify-center rounded-lg border px-3 text-sm transition-colors select-none hover:bg-muted has-checked:border-primary has-checked:bg-primary has-checked:text-primary-foreground has-focus-visible:ring-3 has-focus-visible:ring-ring/50"
           >
             <input
               type="radio"
               name={name}
               value={option.id}
               defaultChecked={option.id === defaultValue}
-              required
+              required={required}
               className="sr-only"
             />
             {option.name}

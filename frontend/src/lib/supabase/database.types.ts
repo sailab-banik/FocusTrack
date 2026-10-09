@@ -51,13 +51,13 @@ export type Database = {
                   ]
                 },"sessions": {
                   Row: {
-                    "category_id": string,"created_at": string,"ended_at": string | null,"id": string,"project_id": string,"started_at": string,"user_id": string
+                    "category_id": string,"created_at": string,"description": string | null,"difficulty": number | null,"ended_at": string | null,"energy": number | null,"id": string,"notes": string | null,"outcome": string | null,"project_id": string,"started_at": string,"user_id": string
                   }
                   Insert: {
-                    "category_id": string,"created_at"?: string,"ended_at"?: string | null,"id"?: string,"project_id": string,"started_at"?: string,"user_id"?: string
+                    "category_id": string,"created_at"?: string,"description"?: string | null,"difficulty"?: number | null,"ended_at"?: string | null,"energy"?: number | null,"id"?: string,"notes"?: string | null,"outcome"?: string | null,"project_id": string,"started_at"?: string,"user_id"?: string
                   }
                   Update: {
-                    "category_id"?: string,"created_at"?: string,"ended_at"?: string | null,"id"?: string,"project_id"?: string,"started_at"?: string,"user_id"?: string
+                    "category_id"?: string,"created_at"?: string,"description"?: string | null,"difficulty"?: number | null,"ended_at"?: string | null,"energy"?: number | null,"id"?: string,"notes"?: string | null,"outcome"?: string | null,"project_id"?: string,"started_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {

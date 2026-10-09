@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(10);
+select plan(13);
 
 insert into auth.users (id, email) values
   ('11111111-1111-1111-1111-111111111111', 'alice@example.com'),
@@ -16,9 +16,9 @@ select
   (select id from public.categories where user_id = '22222222-2222-2222-2222-222222222222' and name = 'Build') as bob_build;
 grant select on ids to authenticated;
 
-insert into public.sessions (user_id, project_id, category_id, started_at, ended_at)
+insert into public.sessions (user_id, project_id, category_id, started_at, ended_at, description, outcome)
 select '22222222-2222-2222-2222-222222222222', 'bbbbbbbb-0000-0000-0000-000000000001', bob_build,
-       now() - interval '1 hour', now()
+       now() - interval '1 hour', now(), 'Bob work', 'Bob output'
 from ids;
 
 set local role authenticated;
@@ -44,9 +44,33 @@ select throws_ok(
   'a user cannot run two sessions at once'
 );
 
-select lives_ok(
+select throws_ok(
   $$ update public.sessions set ended_at = now() where ended_at is null $$,
-  'a user can stop their running session'
+  '23514',
+  null,
+  'a session cannot be stopped without a description and outcome'
+);
+
+select throws_ok(
+  $$ update public.sessions set ended_at = now(), description = '  ', outcome = 'Shipped'
+     where ended_at is null $$,
+  '23514',
+  null,
+  'a blank description does not count'
+);
+
+select throws_ok(
+  $$ update public.sessions set energy = 6 where ended_at is null $$,
+  '23514',
+  null,
+  'energy is limited to 1-5'
+);
+
+select lives_ok(
+  $$ update public.sessions
+     set ended_at = now(), description = 'Timer UI', outcome = 'Shipped start/stop', energy = 4
+     where ended_at is null $$,
+  'a user can stop their running session with a log'
 );
 
 select throws_ok(
@@ -66,8 +90,9 @@ select throws_ok(
 );
 
 select throws_ok(
-  $$ insert into public.sessions (project_id, category_id, started_at, ended_at)
-     select 'aaaaaaaa-0000-0000-0000-000000000001', alice_build, now(), now() - interval '1 minute' from ids $$,
+  $$ insert into public.sessions (project_id, category_id, started_at, ended_at, description, outcome)
+     select 'aaaaaaaa-0000-0000-0000-000000000001', alice_build, now(), now() - interval '1 minute', 'Work', 'Output'
+     from ids $$,
   '23514',
   null,
   'a session cannot end before it starts'

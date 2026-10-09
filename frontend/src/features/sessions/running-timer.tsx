@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { stopSession } from "./actions";
 import { durationSeconds, formatClock } from "./duration";
+import { StopSessionForm } from "./stop-session-form";
 
 export function RunningTimer({
   sessionId,
@@ -17,14 +17,19 @@ export function RunningTimer({
   categoryName: string;
 }) {
   const [now, setNow] = useState(() => new Date());
-  const [stopping, startStop] = useTransition();
+  // Set when Stop is tapped, so time spent writing the log is not counted.
+  const [stoppedAt, setStoppedAt] = useState<Date | null>(null);
 
   useEffect(() => {
+    if (stoppedAt) return;
     const interval = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [stoppedAt]);
 
-  const elapsed = Math.max(0, durationSeconds(new Date(startedAt), now));
+  const elapsed = Math.max(
+    0,
+    durationSeconds(new Date(startedAt), stoppedAt ?? now),
+  );
 
   return (
     <div className="flex flex-col items-center gap-6 text-center">
@@ -34,21 +39,35 @@ export function RunningTimer({
         </p>
         {/* Server and client clocks differ by the render delay. */}
         <p
-          className="font-mono text-6xl font-semibold tabular-nums"
+          className={
+            stoppedAt
+              ? "font-mono text-4xl font-semibold text-muted-foreground tabular-nums"
+              : "font-mono text-6xl font-semibold tabular-nums"
+          }
           suppressHydrationWarning
         >
           {formatClock(elapsed)}
         </p>
       </div>
-      <Button
-        size="lg"
-        variant="destructive"
-        className="h-14 w-full text-base"
-        disabled={stopping}
-        onClick={() => startStop(() => stopSession(sessionId))}
-      >
-        {stopping ? "Stopping…" : "Stop session"}
-      </Button>
+      {stoppedAt ? (
+        <StopSessionForm
+          sessionId={sessionId}
+          stoppedAt={stoppedAt}
+          onResume={() => {
+            setNow(new Date());
+            setStoppedAt(null);
+          }}
+        />
+      ) : (
+        <Button
+          size="lg"
+          variant="destructive"
+          className="h-14 w-full text-base"
+          onClick={() => setStoppedAt(new Date())}
+        >
+          Stop session
+        </Button>
+      )}
     </div>
   );
 }
