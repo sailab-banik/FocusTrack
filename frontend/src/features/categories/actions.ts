@@ -12,6 +12,7 @@ export type CategoryFormState =
   | { status: "error"; message: string };
 
 const UNIQUE_VIOLATION = "23505";
+const FOREIGN_KEY_VIOLATION = "23503";
 
 // user_id is never sent: the column defaults to auth.uid() and RLS rejects
 // rows that belong to anyone else.
@@ -48,12 +49,20 @@ export async function updateCategory(
   return finish(error, parsed.input);
 }
 
-export async function deleteCategory(id: string): Promise<void> {
+export async function deleteCategory(id: string): Promise<CategoryFormState> {
   await requireUser();
   const supabase = await createClient();
   const { error } = await supabase.from("categories").delete().eq("id", id);
+  if (error?.code === FOREIGN_KEY_VIOLATION) {
+    return {
+      status: "error",
+      message:
+        "This category has sessions, so it can't be removed. Rename it instead.",
+    };
+  }
   if (error) throw error;
   refresh();
+  return { status: "saved" };
 }
 
 function finish(

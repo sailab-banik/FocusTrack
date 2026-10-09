@@ -17,6 +17,7 @@ const initialState: CategoryFormState = { status: "idle" };
 export function CategoryRow({ category }: { category: Category }) {
   const [editing, setEditing] = useState(false);
   const [deleting, startDelete] = useTransition();
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [state, formAction, saving] = useActionState(
     async (previous: CategoryFormState, formData: FormData) => {
       const result = await updateCategory(previous, formData);
@@ -28,22 +29,36 @@ export function CategoryRow({ category }: { category: Category }) {
 
   if (!editing) {
     return (
-      <li className="flex items-center justify-between gap-2 py-2">
-        <span className="truncate">{category.name}</span>
-        <div className="flex shrink-0 gap-1">
-          <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>
-            Edit
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-destructive"
-            disabled={deleting}
-            onClick={() => startDelete(() => deleteCategory(category.id))}
-          >
-            {deleting ? "Removing…" : "Remove"}
-          </Button>
+      <li className="flex flex-col gap-1 py-2">
+        <div className="flex items-center justify-between gap-2">
+          <span className="truncate">{category.name}</span>
+          <div className="flex shrink-0 gap-1">
+            <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>
+              Edit
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-destructive"
+              disabled={deleting}
+              onClick={() =>
+                startDelete(async () => {
+                  const result = await deleteCategory(category.id);
+                  setDeleteError(
+                    result.status === "error" ? result.message : null,
+                  );
+                })
+              }
+            >
+              {deleting ? "Removing…" : "Remove"}
+            </Button>
+          </div>
         </div>
+        {deleteError && (
+          <p role="alert" className="text-sm text-destructive">
+            {deleteError}
+          </p>
+        )}
       </li>
     );
   }

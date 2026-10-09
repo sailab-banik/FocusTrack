@@ -49,6 +49,31 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"sessions": {
+                  Row: {
+                    "category_id": string,"created_at": string,"ended_at": string | null,"id": string,"project_id": string,"started_at": string,"user_id": string
+                  }
+                  Insert: {
+                    "category_id": string,"created_at"?: string,"ended_at"?: string | null,"id"?: string,"project_id": string,"started_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "category_id"?: string,"created_at"?: string,"ended_at"?: string | null,"id"?: string,"project_id"?: string,"started_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "sessions_category_id_user_id_fkey"
+      columns: ["category_id","user_id"]
+isOneToOne: false
+      referencedRelation: "categories"
+      referencedColumns: ["id","user_id"]
+    },{
+      foreignKeyName: "sessions_project_id_user_id_fkey"
+      columns: ["project_id","user_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
                 }
           }
           Views: {
