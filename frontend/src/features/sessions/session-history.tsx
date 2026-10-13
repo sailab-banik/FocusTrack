@@ -4,7 +4,7 @@ import { KindMark } from "@/features/categories/kind-mark";
 import { formatLocalTime } from "@/features/timezone/zoned-time";
 import { formatDuration, sessionSeconds } from "./duration";
 import { dayLabel, executionSeconds, groupSessionsByDay } from "./history";
-import type { PastSession } from "./queries";
+import type { HistorySession } from "./queries";
 
 type Categories = Map<string, Category>;
 
@@ -12,14 +12,12 @@ export function SessionHistory({
   sessions,
   projectNames,
   categories,
-  overallScores,
   timeZone,
   now,
 }: {
-  sessions: PastSession[];
+  sessions: HistorySession[];
   projectNames: Map<string, string>;
   categories: Categories;
-  overallScores: Map<string, number>;
   timeZone: string;
   now: Date;
 }) {
@@ -46,7 +44,6 @@ export function SessionHistory({
                 session={session}
                 projectName={projectNames.get(session.projectId) ?? ""}
                 category={categories.get(session.categoryId)}
-                overallScore={overallScores.get(session.id) ?? null}
                 timeZone={timeZone}
               />
             ))}
@@ -98,13 +95,11 @@ function SessionItem({
   session,
   projectName,
   category,
-  overallScore,
   timeZone,
 }: {
-  session: PastSession;
+  session: HistorySession;
   projectName: string;
   category: Category | undefined;
-  overallScore: number | null;
   timeZone: string;
 }) {
   const startedAt = new Date(session.startedAt);
@@ -150,7 +145,7 @@ function SessionItem({
             pausedSeconds={session.pausedSeconds}
             energy={session.energy}
             difficulty={session.difficulty}
-            overallScore={overallScore}
+            overallScore={session.overallScore}
           />
         </div>
       </Link>
