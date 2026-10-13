@@ -1,22 +1,24 @@
 import Link from "next/link";
+import { PageHeader } from "@/components/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { listCategories, type Category } from "@/features/categories/queries";
 import { getRevisitNudges } from "@/features/nudges/queries";
-import type { RevisitNudge } from "@/features/nudges/revisit";
 import { RevisitNudges } from "@/features/nudges/revisit-nudges";
 import { listProjects, type Project } from "@/features/projects/queries";
 import {
   getLastUsed,
   getRunningSession,
   listSessionSpans,
-  type SessionSpan,
 } from "@/features/sessions/queries";
 import { StartSessionForm } from "@/features/sessions/start-session-form";
 import { TimerFace } from "@/features/sessions/timer-face";
 import { TimerScreen } from "@/features/sessions/timer-screen";
-import { TodayStrip } from "@/features/sessions/today-strip";
+import { TodayPanel } from "@/features/sessions/today-panel";
 import { getTimeZone } from "@/features/timezone/time-zone";
-import { startOfLocalDay } from "@/features/timezone/zoned-time";
+import {
+  formatLongDate,
+  startOfLocalDay,
+} from "@/features/timezone/zoned-time";
 
 export default async function TimerPage({ searchParams }: PageProps<"/">) {
   const now = new Date();
@@ -35,26 +37,43 @@ export default async function TimerPage({ searchParams }: PageProps<"/">) {
   const activeProjects = projects.filter((p) => !p.archived);
 
   return (
-    <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-8 px-4 py-8">
-      <TimerScreen running={running} projects={projects} categories={categories}>
-        {!running && (
-          <StartPanel
-            projects={activeProjects}
+    <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-8 sm:py-12">
+      <PageHeader title={formatLongDate(now, timeZone)} />
+      {/* One column on phones, timer first so Start stays near the top. */}
+      <div className="grid items-start gap-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-16">
+        <div className="flex min-w-0 flex-col gap-8">
+          <TimerScreen
+            running={running}
+            projects={projects}
             categories={categories}
-            // A nudge links here with the work to restart already chosen.
-            defaultProjectId={
-              idIn(activeProjects, params.project) ?? lastUsed?.projectId
-            }
-            defaultCategoryId={
-              idIn(categories, params.category) ?? lastUsed?.categoryId
-            }
-            nudges={nudges}
-            today={today}
-            now={now}
+          >
+            {!running && (
+              <StartPanel
+                projects={activeProjects}
+                categories={categories}
+                // A nudge links here with the work to restart already chosen.
+                defaultProjectId={
+                  idIn(activeProjects, params.project) ?? lastUsed?.projectId
+                }
+                defaultCategoryId={
+                  idIn(categories, params.category) ?? lastUsed?.categoryId
+                }
+              />
+            )}
+          </TimerScreen>
+        </div>
+        <aside className="flex flex-col gap-10 lg:sticky lg:top-22">
+          <TodayPanel
+            spans={today}
+            categories={categories}
+            projects={projects}
             timeZone={timeZone}
           />
-        )}
-      </TimerScreen>
+          {!running && nudges.length > 0 && (
+            <RevisitNudges nudges={nudges} now={now} timeZone={timeZone} />
+          )}
+        </aside>
+      </div>
     </main>
   );
 }
@@ -64,19 +83,11 @@ function StartPanel({
   categories,
   defaultProjectId,
   defaultCategoryId,
-  nudges,
-  today,
-  now,
-  timeZone,
 }: {
   projects: Project[];
   categories: Category[];
   defaultProjectId: string | undefined;
   defaultCategoryId: string | undefined;
-  nudges: RevisitNudge[];
-  today: SessionSpan[];
-  now: Date;
-  timeZone: string;
 }) {
   if (projects.length === 0) {
     return (
@@ -94,17 +105,11 @@ function StartPanel({
   }
   return (
     <>
-      {today.length > 0 ? (
-        <TodayStrip spans={today} categories={categories} timeZone={timeZone} />
-      ) : (
-        // Decorative at rest, so short phones drop it to keep Start in view.
-        <div
-          aria-hidden
-          className="hidden text-foreground/25 sm:block [@media(min-height:760px)]:block"
-        >
-          <TimerFace elapsedSeconds={0} />
-        </div>
-      )}
+      {/* The clock that starts counting here. Phones drop it so Start stays
+          above the tab bar under the date heading. */}
+      <div aria-hidden className="hidden text-foreground/25 sm:block">
+        <TimerFace elapsedSeconds={0} />
+      </div>
       <StartSessionForm
         // Remount so a nudge's choice replaces the chips' earlier defaults.
         key={`${defaultProjectId}:${defaultCategoryId}`}
@@ -113,10 +118,6 @@ function StartPanel({
         defaultProjectId={defaultProjectId}
         defaultCategoryId={defaultCategoryId}
       />
-      {/* After the form so Start stays within reach on every screen. */}
-      {nudges.length > 0 && (
-        <RevisitNudges nudges={nudges} now={now} timeZone={timeZone} />
-      )}
     </>
   );
 }

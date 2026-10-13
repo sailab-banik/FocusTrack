@@ -19,7 +19,7 @@ export const NO_GOAL_LABEL = "Not serving a goal";
  * time that served no goal when there is any.
  */
 export function goalTimes(
-  spans: SessionSpan[],
+  spans: Omit<SessionSpan, "id">[],
   categories: Category[],
   goals: Goal[],
   projects: Project[],

@@ -78,6 +78,16 @@ export function toLocalDateTimeInput(date: Date, timeZone: string): string {
   return `${p.year}-${pad(p.month)}-${pad(p.day)}T${pad(p.hour)}:${pad(p.minute)}`;
 }
 
+/** e.g. "Tuesday, October 13" in the given timezone. */
+export function formatLongDate(date: Date, timeZone: string): string {
+  return date.toLocaleDateString("en-US", {
+    timeZone,
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+}
+
 /** Wall-clock time as HH:mm in the given timezone. */
 export function formatLocalTime(date: Date, timeZone: string): string {
   const p = zonedParts(date, timeZone);

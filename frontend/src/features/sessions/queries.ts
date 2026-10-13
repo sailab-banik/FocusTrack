@@ -103,6 +103,7 @@ export async function listPastSessions(
 }
 
 export type SessionSpan = {
+  id: string;
   projectId: string;
   categoryId: string;
   startedAt: string;
@@ -115,11 +116,12 @@ export async function listSessionSpans(since: Date): Promise<SessionSpan[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("sessions")
-    .select("project_id, category_id, started_at, ended_at, paused_seconds")
+    .select("id, project_id, category_id, started_at, ended_at, paused_seconds")
     .not("ended_at", "is", null)
     .gte("started_at", since.toISOString());
   if (error) throw error;
   return data.map((row) => ({
+    id: row.id,
     projectId: row.project_id,
     categoryId: row.category_id,
     startedAt: row.started_at,

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   formatLocalTime,
+  formatLongDate,
   fromLocalDateTimeInput,
   isValidTimeZone,
   localDayKey,
@@ -97,5 +98,14 @@ describe("startOfLocalDay", () => {
     expect(
       startOfLocalDay(new Date("2026-10-09T20:00:00Z"), "Asia/Kolkata"),
     ).toEqual(new Date("2026-10-09T18:30:00Z"));
+  });
+});
+
+describe("formatLongDate", () => {
+  it("names the local date, not the UTC one", () => {
+    // 20:00 UTC on the 13th is already the 14th in Kolkata.
+    expect(
+      formatLongDate(new Date("2026-10-13T20:00:00Z"), "Asia/Kolkata"),
+    ).toBe("Wednesday, October 14");
   });
 });

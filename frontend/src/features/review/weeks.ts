@@ -58,7 +58,7 @@ export type WeekStats = {
 /** Totals per week, matching sessions to the week they started in. */
 export function weekStats(
   weeks: Week[],
-  spans: SessionSpan[],
+  spans: Omit<SessionSpan, "id">[],
   kindOf: Map<string, CategoryKind>,
   servingProjectIds: Set<string>,
   timeZone: string,
