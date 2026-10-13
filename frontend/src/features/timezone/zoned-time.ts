@@ -55,6 +55,23 @@ export function localDayKey(date: Date, timeZone: string): string {
   return `${p.year}-${pad(p.month)}-${pad(p.day)}`;
 }
 
+/** Minutes since local midnight of the instant in the given timezone. */
+export function minutesIntoDay(date: Date, timeZone: string): number {
+  const p = zonedParts(date, timeZone);
+  return p.hour * 60 + p.minute + p.second / 60;
+}
+
+/** The instant a YYYY-MM-DD day key began in the given timezone. */
+export function localMidnight(dayKey: string, timeZone: string): Date {
+  // A well-formed day key always parses.
+  return fromLocalDateTimeInput(`${dayKey}T00:00`, timeZone)!;
+}
+
+/** The instant the local day containing `date` began. */
+export function startOfLocalDay(date: Date, timeZone: string): Date {
+  return localMidnight(localDayKey(date, timeZone), timeZone);
+}
+
 /** Value for <input type="datetime-local">: YYYY-MM-DDTHH:mm. */
 export function toLocalDateTimeInput(date: Date, timeZone: string): string {
   const p = zonedParts(date, timeZone);

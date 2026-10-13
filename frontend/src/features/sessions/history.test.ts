@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { dayLabel, executionSeconds, groupSessionsByDay } from "./history";
+import {
+  dayBlocks,
+  dayLabel,
+  executionSeconds,
+  groupSessionsByDay,
+} from "./history";
 
 function session(id: string, startedAt: string, endedAt: string) {
   return { id, startedAt, endedAt, pausedSeconds: 0 };
@@ -83,5 +88,60 @@ describe("dayLabel", () => {
   it("formats older days, adding the year only when it differs", () => {
     expect(dayLabel("2026-10-05", now, "UTC")).toBe("Mon, Oct 5");
     expect(dayLabel("2025-12-31", now, "UTC")).toBe("Wed, Dec 31, 2025");
+  });
+});
+
+describe("dayBlocks", () => {
+  const categories = new Map([
+    ["build", { kind: "execution" as const }],
+    ["learn", { kind: "preparation" as const }],
+  ]);
+
+  it("places sessions by local minutes from midnight", () => {
+    expect(
+      dayBlocks(
+        [
+          {
+            ...session("a", "2026-10-09T09:00:00Z", "2026-10-09T10:30:00Z"),
+            categoryId: "build",
+          },
+        ],
+        categories,
+        "Asia/Kolkata",
+      ),
+    ).toEqual([{ startMinute: 870, endMinute: 960, kind: "execution" }]);
+  });
+
+  it("spans wall-clock time, pauses included", () => {
+    const [block] = dayBlocks(
+      [
+        {
+          ...session("a", "2026-10-09T09:00:00Z", "2026-10-09T10:00:00Z"),
+          pausedSeconds: 1800,
+          categoryId: "learn",
+        },
+      ],
+      categories,
+      "UTC",
+    );
+    expect(block).toEqual({
+      startMinute: 540,
+      endMinute: 600,
+      kind: "preparation",
+    });
+  });
+
+  it("cuts a session that runs past midnight at the end of the day", () => {
+    const [block] = dayBlocks(
+      [
+        {
+          ...session("a", "2026-10-09T23:00:00Z", "2026-10-10T01:00:00Z"),
+          categoryId: "build",
+        },
+      ],
+      categories,
+      "UTC",
+    );
+    expect(block.endMinute).toBe(1440);
   });
 });

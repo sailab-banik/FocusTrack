@@ -1,5 +1,5 @@
 import type { CategoryKind } from "@/features/categories/category-input";
-import { localDayKey } from "@/features/timezone/zoned-time";
+import { localDayKey, minutesIntoDay } from "@/features/timezone/zoned-time";
 import { sessionSeconds } from "./duration";
 
 type TimedSession = {
@@ -45,6 +45,38 @@ export function executionSeconds(
   return sessions
     .filter((s) => categories.get(s.categoryId)?.kind === "execution")
     .reduce((total, s) => total + sessionSeconds(s), 0);
+}
+
+export const MINUTES_PER_DAY = 1440;
+
+export type DayBlock = {
+  startMinute: number;
+  endMinute: number;
+  kind: CategoryKind;
+};
+
+/**
+ * Where each session sat in its local day, in minutes from midnight. The
+ * block spans wall-clock time, pauses included: it shows when, not how long.
+ * A session running past midnight is cut at the end of its start day.
+ */
+export function dayBlocks(
+  sessions: (TimedSession & { categoryId: string })[],
+  categories: Map<string, { kind: CategoryKind }>,
+  timeZone: string,
+): DayBlock[] {
+  return sessions.map((session) => {
+    const startedAt = new Date(session.startedAt);
+    const startMinute = minutesIntoDay(startedAt, timeZone);
+    const spanMinutes =
+      (new Date(session.endedAt).getTime() - startedAt.getTime()) / 60_000;
+    return {
+      startMinute,
+      endMinute: Math.min(MINUTES_PER_DAY, startMinute + spanMinutes),
+      // A category with sessions cannot be removed.
+      kind: categories.get(session.categoryId)!.kind,
+    };
+  });
 }
 
 /** "Today", "Yesterday", or e.g. "Thu, Oct 8" for a YYYY-MM-DD day key. */

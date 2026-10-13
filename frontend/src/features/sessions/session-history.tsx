@@ -2,8 +2,15 @@ import Link from "next/link";
 import type { Category } from "@/features/categories/queries";
 import { KindMark } from "@/features/categories/kind-mark";
 import { formatLocalTime } from "@/features/timezone/zoned-time";
+import { DayStrip } from "./day-strip";
 import { formatDuration, sessionSeconds } from "./duration";
-import { dayLabel, executionSeconds, groupSessionsByDay } from "./history";
+import {
+  dayBlocks,
+  dayLabel,
+  executionSeconds,
+  groupSessionsByDay,
+} from "./history";
+import { KindTotals } from "./kind-totals";
 import type { HistorySession } from "./queries";
 
 type Categories = Map<string, Category>;
@@ -23,74 +30,47 @@ export function SessionHistory({
 }) {
   return (
     <div className="flex flex-col gap-12">
-      {groupSessionsByDay(sessions, timeZone).map((group) => (
-        <section key={group.dayKey} className="flex flex-col gap-3">
-          <div className="flex items-baseline justify-between gap-2">
-            <h2 className="text-xl font-semibold tracking-tight">
-              {dayLabel(group.dayKey, now, timeZone)}
-            </h2>
-            <span className="text-xl font-semibold tabular-nums">
-              {formatDuration(group.totalSeconds)}
-            </span>
-          </div>
-          <KindSplit
-            execution={executionSeconds(group.sessions, categories)}
-            total={group.totalSeconds}
-          />
-          <ul className="mt-2 flex flex-col divide-y border-t">
-            {group.sessions.map((session) => (
-              <SessionItem
-                key={session.id}
-                session={session}
-                projectName={projectNames.get(session.projectId) ?? ""}
-                category={categories.get(session.categoryId)}
-                timeZone={timeZone}
-              />
-            ))}
-          </ul>
-        </section>
-      ))}
+      {groupSessionsByDay(sessions, timeZone).map((group) => {
+        const execution = executionSeconds(group.sessions, categories);
+        return (
+          <section key={group.dayKey} className="flex flex-col gap-3">
+            {/* Stays under the app header so the day is known mid-scroll. */}
+            <div className="sticky top-14 z-10 -mx-4 flex items-center justify-between gap-3 bg-background px-4 py-2">
+              <h2 className="truncate text-xl font-semibold tracking-tight">
+                {dayLabel(group.dayKey, now, timeZone)}
+              </h2>
+              <div className="flex shrink-0 items-center gap-3">
+                <DayStrip
+                  blocks={dayBlocks(group.sessions, categories, timeZone)}
+                />
+                <span className="text-xl font-semibold tabular-nums">
+                  {formatDuration(group.totalSeconds)}
+                </span>
+              </div>
+            </div>
+            <KindTotals
+              execution={execution}
+              preparation={group.totalSeconds - execution}
+            />
+            <ul className="mt-1 flex flex-col divide-y border-t">
+              {group.sessions.map((session) => (
+                <SessionItem
+                  key={session.id}
+                  session={session}
+                  projectName={projectNames.get(session.projectId) ?? ""}
+                  category={categories.get(session.categoryId)}
+                  timeZone={timeZone}
+                />
+              ))}
+            </ul>
+          </section>
+        );
+      })}
     </div>
   );
 }
 
-// How the day's time divides between producing output and getting ready to.
-function KindSplit({ execution, total }: { execution: number; total: number }) {
-  const parts = [
-    { kind: "execution", label: "Execution", seconds: execution },
-    { kind: "preparation", label: "Preparation", seconds: total - execution },
-  ] as const;
-
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex h-2 gap-0.5" aria-hidden>
-        {parts.map(
-          (part) =>
-            part.seconds > 0 && (
-              <span
-                key={part.kind}
-                data-kind={part.kind}
-                className="min-w-1 rounded-full bg-kind"
-                style={{ flexGrow: part.seconds }}
-              />
-            ),
-        )}
-      </div>
-      <dl className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
-        {parts.map((part) => (
-          <div key={part.kind} className="flex items-center gap-1.5">
-            <KindMark kind={part.kind} />
-            <dt className="text-muted-foreground">{part.label}</dt>
-            <dd className="font-medium tabular-nums">
-              {formatDuration(part.seconds)}
-            </dd>
-          </div>
-        ))}
-      </dl>
-    </div>
-  );
-}
-
+// The outcome leads: what a session produced matters more than its topic.
 function SessionItem({
   session,
   projectName,
@@ -102,43 +82,39 @@ function SessionItem({
   category: Category | undefined;
   timeZone: string;
 }) {
-  const startedAt = new Date(session.startedAt);
-  const endedAt = new Date(session.endedAt);
-
   return (
     <li>
       <Link
         href={`/sessions/${session.id}`}
-        className="-mx-3 grid gap-x-4 gap-y-1 rounded-xl px-3 py-4 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 sm:grid-cols-[6.5rem_minmax(0,1fr)]"
+        className="-mx-3 grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1.5 rounded-xl px-3 py-4 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 sm:grid-cols-[6.5rem_minmax(0,1fr)_auto]"
       >
         <span className="text-sm text-muted-foreground tabular-nums sm:pt-0.5">
-          {formatLocalTime(startedAt, timeZone)}–
-          {formatLocalTime(endedAt, timeZone)}
+          {formatLocalTime(new Date(session.startedAt), timeZone)}–
+          {formatLocalTime(new Date(session.endedAt), timeZone)}
         </span>
-        <div className="flex min-w-0 flex-col gap-1.5">
-          <div className="flex items-baseline justify-between gap-3">
+        <span className="col-start-2 row-start-1 text-right font-semibold tabular-nums sm:col-start-3">
+          {formatDuration(sessionSeconds(session))}
+        </span>
+        <div className="col-span-2 flex min-w-0 flex-col gap-1 sm:col-span-1 sm:col-start-2 sm:row-start-1">
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
             <span className="truncate font-semibold">{projectName}</span>
-            <span className="shrink-0 font-medium tabular-nums">
-              {formatDuration(sessionSeconds(session))}
-            </span>
+            {category && (
+              <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <KindMark kind={category.kind} />
+                {category.name}
+              </span>
+            )}
           </div>
-          {category && (
-            <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <KindMark kind={category.kind} />
-              {category.name}
-            </span>
-          )}
-          {session.description ? (
-            <p className="text-sm">{session.description}</p>
+          {session.outcome ? (
+            <p>{session.outcome}</p>
           ) : (
-            <p className="text-sm text-muted-foreground italic">
+            <p className="text-muted-foreground italic">
               No log yet. Tap to add one.
             </p>
           )}
-          {session.outcome && (
+          {session.description && (
             <p className="text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">Outcome:</span>{" "}
-              {session.outcome}
+              {session.description}
             </p>
           )}
           <Ratings
@@ -173,7 +149,7 @@ function Ratings({
   ].filter((part) => part !== false);
   if (parts.length === 0) return null;
   return (
-    <p className="flex flex-wrap gap-x-4 text-xs text-muted-foreground">
+    <p className="mt-0.5 flex flex-wrap gap-x-4 text-xs text-muted-foreground">
       {parts.map((part) => (
         <span key={part}>{part}</span>
       ))}

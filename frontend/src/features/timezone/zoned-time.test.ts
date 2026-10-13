@@ -4,6 +4,8 @@ import {
   fromLocalDateTimeInput,
   isValidTimeZone,
   localDayKey,
+  minutesIntoDay,
+  startOfLocalDay,
   toLocalDateTimeInput,
 } from "./zoned-time";
 
@@ -70,5 +72,30 @@ describe("formatLocalTime", () => {
     const instant = new Date("2026-10-09T18:05:00Z");
     expect(formatLocalTime(instant, "UTC")).toBe("18:05");
     expect(formatLocalTime(instant, "Asia/Kolkata")).toBe("23:35");
+  });
+});
+
+describe("minutesIntoDay", () => {
+  it("counts minutes from local midnight", () => {
+    // 09:00 UTC is 14:30 in Kolkata.
+    expect(
+      minutesIntoDay(new Date("2026-10-09T09:00:30Z"), "Asia/Kolkata"),
+    ).toBe(870.5);
+  });
+});
+
+describe("startOfLocalDay", () => {
+  it("returns local midnight as an instant", () => {
+    // Midnight in Kolkata is 18:30 UTC the day before.
+    expect(
+      startOfLocalDay(new Date("2026-10-09T09:00:00Z"), "Asia/Kolkata"),
+    ).toEqual(new Date("2026-10-08T18:30:00Z"));
+  });
+
+  it("uses the local date, not the UTC one", () => {
+    // 20:00 UTC on the 9th is already the 10th in Kolkata.
+    expect(
+      startOfLocalDay(new Date("2026-10-09T20:00:00Z"), "Asia/Kolkata"),
+    ).toEqual(new Date("2026-10-09T18:30:00Z"));
   });
 });
