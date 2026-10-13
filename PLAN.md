@@ -190,11 +190,11 @@ Build the smallest useful version first. Do not implement the long-term vision a
 
 ### Phase 2 — Progressive additions, in order
 
-1. AI todos
-2. Personal Context Library
-3. RAG
-4. Daily/weekly analysis
-5. Long-term contribution analytics
+1. Weekly analysis: done, moved ahead of AI todos. The Review page shows this week against the four before it (time, execution share, goal share, active days), computed without AI. On request it adds an AI review (headline, 2 to 4 observations with evidence, one next action) stored in `weekly_reviews` with its prompt version. Weeks run Monday to Sunday in the user's timezone.
+2. AI todos
+3. Personal Context Library
+4. RAG
+5. Daily analysis and long-term contribution analytics
 6. Multi-user SaaS capabilities
 7. Billing
 

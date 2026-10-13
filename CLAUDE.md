@@ -11,7 +11,7 @@ It is **not** a generic todo app, habit tracker, life tracker, or journal.
 
 ## Status
 
-Phase 1 (milestones 0–8) is complete: auth, categories, projects, timer, session logging, history, goals, and AI session evaluation (OpenAI). Since then: pause/resume and in-app nudges (PLAN.md section 5). Next is Phase 2 in PLAN.md, starting with AI todos.
+Phase 1 (milestones 0–8) is complete: auth, categories, projects, timer, session logging, history, goals, and AI session evaluation (OpenAI). Since then: pause/resume, in-app nudges (PLAN.md section 5), and the weekly Review page with an on-request AI review (Phase 2, item 1). Goals, projects, and categories live on one Work page; the nav is Timer, History, Work, Review. Next is AI todos.
 
 ## Commands
 
