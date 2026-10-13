@@ -6,9 +6,10 @@ import { formatDuration } from "@/features/sessions/duration";
 import { dayLabel } from "@/features/sessions/history";
 import { dismissNudge } from "./actions";
 import { revisitKey } from "./dismissals";
-import { NudgeCard } from "./nudge-card";
 import type { RevisitNudge } from "./revisit";
 
+// Compact rows under the start button: worth seeing, never in the way of
+// starting what was already chosen.
 export function RevisitNudges({
   nudges,
   now,
@@ -23,42 +24,41 @@ export function RevisitNudges({
   return (
     <section
       aria-label="Work to pick back up"
-      className={cn("flex flex-col gap-3", className)}
+      className={cn("flex flex-col divide-y border-y", className)}
     >
       {nudges.map((nudge) => (
-        <NudgeCard
-          key={nudge.projectId}
-          icon={<RotateCcw aria-hidden />}
-          title={`No ${nudge.projectName} for ${nudge.daysSince} days`}
-          actions={
-            <>
+        <div key={nudge.projectId} className="flex gap-3 py-4">
+          <RotateCcw
+            aria-hidden
+            className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+          />
+          <div className="flex min-w-0 flex-1 flex-col gap-2.5">
+            <div className="flex flex-col gap-0.5">
+              <p className="font-semibold">
+                No {nudge.projectName} for {nudge.daysSince} days
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {nudge.sessionCount} sessions over {nudge.activeDays} days (
+                {formatDuration(nudge.workedSeconds)}), last on{" "}
+                {dayLabel(nudge.lastDayKey, now, timeZone)}. Archive it if you
+                have moved on.
+              </p>
+            </div>
+            <div className="flex gap-1">
               <Link
                 href={`/?project=${nudge.projectId}&category=${nudge.categoryId}`}
-                className={buttonVariants({
-                  size: "lg",
-                  className: "h-9 px-3.5",
-                })}
+                className={buttonVariants({ variant: "outline" })}
               >
                 Pick it back up
               </Link>
               <form action={dismissNudge.bind(null, revisitKey(nudge))}>
-                <Button
-                  type="submit"
-                  variant="ghost"
-                  size="lg"
-                  className="h-9 px-3.5"
-                >
+                <Button type="submit" variant="ghost">
                   Dismiss
                 </Button>
               </form>
-            </>
-          }
-        >
-          {nudge.sessionCount} sessions over {nudge.activeDays} days (
-          {formatDuration(nudge.workedSeconds)}), last on{" "}
-          {dayLabel(nudge.lastDayKey, now, timeZone)}. Archive it if you have
-          moved on.
-        </NudgeCard>
+            </div>
+          </div>
+        </div>
       ))}
     </section>
   );

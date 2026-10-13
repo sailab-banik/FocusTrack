@@ -102,8 +102,16 @@ export async function listPastSessions(
   };
 }
 
+export type SessionSpan = {
+  projectId: string;
+  categoryId: string;
+  startedAt: string;
+  endedAt: string;
+  pausedSeconds: number;
+};
+
 /** Finished sessions started since the given time, in no particular order. */
-export async function listSessionSpans(since: Date) {
+export async function listSessionSpans(since: Date): Promise<SessionSpan[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("sessions")

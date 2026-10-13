@@ -5,23 +5,31 @@ import { getRevisitNudges } from "@/features/nudges/queries";
 import type { RevisitNudge } from "@/features/nudges/revisit";
 import { RevisitNudges } from "@/features/nudges/revisit-nudges";
 import { listProjects, type Project } from "@/features/projects/queries";
-import { getLastUsed, getRunningSession } from "@/features/sessions/queries";
+import {
+  getLastUsed,
+  getRunningSession,
+  listSessionSpans,
+  type SessionSpan,
+} from "@/features/sessions/queries";
 import { StartSessionForm } from "@/features/sessions/start-session-form";
 import { TimerFace } from "@/features/sessions/timer-face";
 import { TimerScreen } from "@/features/sessions/timer-screen";
+import { TodayStrip } from "@/features/sessions/today-strip";
 import { getTimeZone } from "@/features/timezone/time-zone";
+import { startOfLocalDay } from "@/features/timezone/zoned-time";
 
 export default async function TimerPage({ searchParams }: PageProps<"/">) {
   const now = new Date();
   const timeZone = await getTimeZone();
   const projectsPromise = listProjects();
-  const [running, projects, categories, lastUsed, nudges, params] =
+  const [running, projects, categories, lastUsed, nudges, today, params] =
     await Promise.all([
       getRunningSession(),
       projectsPromise,
       listCategories(),
       getLastUsed(),
       getRevisitNudges(projectsPromise, now, timeZone),
+      listSessionSpans(startOfLocalDay(now, timeZone)),
       searchParams,
     ]);
   const activeProjects = projects.filter((p) => !p.archived);
@@ -41,6 +49,7 @@ export default async function TimerPage({ searchParams }: PageProps<"/">) {
               idIn(categories, params.category) ?? lastUsed?.categoryId
             }
             nudges={nudges}
+            today={today}
             now={now}
             timeZone={timeZone}
           />
@@ -56,6 +65,7 @@ function StartPanel({
   defaultProjectId,
   defaultCategoryId,
   nudges,
+  today,
   now,
   timeZone,
 }: {
@@ -64,6 +74,7 @@ function StartPanel({
   defaultProjectId: string | undefined;
   defaultCategoryId: string | undefined;
   nudges: RevisitNudge[];
+  today: SessionSpan[];
   now: Date;
   timeZone: string;
 }) {
@@ -83,14 +94,8 @@ function StartPanel({
   }
   return (
     <>
-      {nudges.length > 0 ? (
-        // Below the form on phones, so Start stays within reach.
-        <RevisitNudges
-          nudges={nudges}
-          now={now}
-          timeZone={timeZone}
-          className="order-last sm:order-first"
-        />
+      {today.length > 0 ? (
+        <TodayStrip spans={today} categories={categories} timeZone={timeZone} />
       ) : (
         // Decorative at rest, so short phones drop it to keep Start in view.
         <div
@@ -108,6 +113,10 @@ function StartPanel({
         defaultProjectId={defaultProjectId}
         defaultCategoryId={defaultCategoryId}
       />
+      {/* After the form so Start stays within reach on every screen. */}
+      {nudges.length > 0 && (
+        <RevisitNudges nudges={nudges} now={now} timeZone={timeZone} />
+      )}
     </>
   );
 }
