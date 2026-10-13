@@ -28,9 +28,14 @@ export async function startSession(
   await requireUser();
   const parsed = parseStartInput(formData);
   if (!parsed.ok) return { status: "error", message: parsed.error };
+  // Chosen by the client so the timer it shows before this save lands
+  // already has the session's real id.
+  const sessionId = formData.get("sessionId");
+  if (!isUuid(sessionId)) throw new Error("Invalid session id");
 
   const supabase = await createClient();
   const { error } = await supabase.from("sessions").insert({
+    id: sessionId,
     project_id: parsed.input.projectId,
     category_id: parsed.input.categoryId,
   });

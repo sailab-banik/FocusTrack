@@ -1,10 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
+import { use, useActionState } from "react";
 import { Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { startSession, type SessionFormState } from "./actions";
 import { ChoiceChips, type ChoiceOption } from "./choice-chips";
+import { parseStartInput } from "./start-input";
+import { ShowStartedContext } from "./timer-screen";
 
 const initialState: SessionFormState = { status: "idle" };
 
@@ -19,8 +21,16 @@ export function StartSessionForm({
   defaultProjectId: string | undefined;
   defaultCategoryId: string | undefined;
 }) {
+  // Always rendered inside TimerScreen.
+  const showStarted = use(ShowStartedContext)!;
   const [state, formAction, pending] = useActionState(
-    startSession,
+    (previous: SessionFormState, formData: FormData) => {
+      const sessionId = crypto.randomUUID();
+      formData.set("sessionId", sessionId);
+      const parsed = parseStartInput(formData);
+      if (parsed.ok) showStarted(sessionId, parsed.input);
+      return startSession(previous, formData);
+    },
     initialState,
   );
 

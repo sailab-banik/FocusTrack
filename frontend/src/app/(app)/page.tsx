@@ -5,14 +5,10 @@ import { getRevisitNudges } from "@/features/nudges/queries";
 import type { RevisitNudge } from "@/features/nudges/revisit";
 import { RevisitNudges } from "@/features/nudges/revisit-nudges";
 import { listProjects, type Project } from "@/features/projects/queries";
-import {
-  getLastUsed,
-  getRunningSession,
-  type RunningSession,
-} from "@/features/sessions/queries";
-import { RunningTimer } from "@/features/sessions/running-timer";
+import { getLastUsed, getRunningSession } from "@/features/sessions/queries";
 import { StartSessionForm } from "@/features/sessions/start-session-form";
 import { TimerFace } from "@/features/sessions/timer-face";
+import { TimerScreen } from "@/features/sessions/timer-screen";
 import { getTimeZone } from "@/features/timezone/time-zone";
 
 export default async function TimerPage({ searchParams }: PageProps<"/">) {
@@ -32,56 +28,25 @@ export default async function TimerPage({ searchParams }: PageProps<"/">) {
 
   return (
     <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-8 px-4 py-8">
-      {running ? (
-        <ActiveSession
-          running={running}
-          projects={projects}
-          categories={categories}
-        />
-      ) : (
-        <StartPanel
-          projects={activeProjects}
-          categories={categories}
-          // A nudge links here with the work to restart already chosen.
-          defaultProjectId={
-            idIn(activeProjects, params.project) ?? lastUsed?.projectId
-          }
-          defaultCategoryId={
-            idIn(categories, params.category) ?? lastUsed?.categoryId
-          }
-          nudges={nudges}
-          now={now}
-          timeZone={timeZone}
-        />
-      )}
+      <TimerScreen running={running} projects={projects} categories={categories}>
+        {!running && (
+          <StartPanel
+            projects={activeProjects}
+            categories={categories}
+            // A nudge links here with the work to restart already chosen.
+            defaultProjectId={
+              idIn(activeProjects, params.project) ?? lastUsed?.projectId
+            }
+            defaultCategoryId={
+              idIn(categories, params.category) ?? lastUsed?.categoryId
+            }
+            nudges={nudges}
+            now={now}
+            timeZone={timeZone}
+          />
+        )}
+      </TimerScreen>
     </main>
-  );
-}
-
-function ActiveSession({
-  running,
-  projects,
-  categories,
-}: {
-  running: RunningSession;
-  projects: Project[];
-  categories: Category[];
-}) {
-  // Foreign keys keep a session's project and category from being removed.
-  const project = projects.find((p) => p.id === running.projectId)!;
-  const category = categories.find((c) => c.id === running.categoryId)!;
-
-  return (
-    <RunningTimer
-      sessionId={running.id}
-      startedAt={running.startedAt}
-      pausedAt={running.pausedAt}
-      pausedSeconds={running.pausedSeconds}
-      resumedAt={running.resumedAt}
-      projectName={project.name}
-      categoryName={category.name}
-      kind={category.kind}
-    />
   );
 }
 
