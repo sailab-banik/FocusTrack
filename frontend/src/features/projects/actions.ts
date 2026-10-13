@@ -21,14 +21,17 @@ export async function createProject(
   formData: FormData,
 ): Promise<ProjectFormState> {
   await requireUser();
-  const parsed = parseProjectName(formData);
-  if (!parsed.ok) return { status: "error", message: parsed.error };
+  const name = parseProjectName(formData);
+  if (!name.ok) return { status: "error", message: name.error };
+  const goal = parseProjectGoal(formData);
+  if (!goal.ok) return { status: "error", message: goal.error };
 
   const supabase = await createClient();
   const { error } = await supabase
     .from("projects")
-    .insert({ name: parsed.name });
-  return finish(error, parsed.name);
+    .insert({ name: name.name, goal_id: goal.goalId });
+  if (error?.code === FOREIGN_KEY_VIOLATION) return GOAL_GONE;
+  return finish(error, name.name);
 }
 
 export async function updateProject(
@@ -50,14 +53,14 @@ export async function updateProject(
     .from("projects")
     .update({ name: name.name, goal_id: goal.goalId })
     .eq("id", id);
-  if (error?.code === FOREIGN_KEY_VIOLATION) {
-    return {
-      status: "error",
-      message: "That goal no longer exists. Reload the page.",
-    };
-  }
+  if (error?.code === FOREIGN_KEY_VIOLATION) return GOAL_GONE;
   return finish(error, name.name);
 }
+
+const GOAL_GONE: ProjectFormState = {
+  status: "error",
+  message: "That goal no longer exists. Reload the page.",
+};
 
 export async function setProjectArchived(
   id: string,

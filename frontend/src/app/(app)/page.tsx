@@ -69,14 +69,14 @@ function StartPanel({
 }) {
   if (projects.length === 0) {
     return (
-      <EmptyState href="/projects" linkText="Add a project">
+      <EmptyState href="/work" linkText="Add a project">
         Sessions are logged against a project. Add one to start tracking.
       </EmptyState>
     );
   }
   if (categories.length === 0) {
     return (
-      <EmptyState href="/categories" linkText="Add a category">
+      <EmptyState href="/work#kinds" linkText="Add a category">
         Sessions need a category. Add one to start tracking.
       </EmptyState>
     );

@@ -2,15 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FolderKanban, History, Shapes, Target, Timer } from "lucide-react";
+import { Compass, History, Timer } from "lucide-react";
 import { cn } from "cn";
 
 const NAV_ITEMS = [
   { href: "/", label: "Timer", icon: Timer },
   { href: "/sessions", label: "History", icon: History },
-  { href: "/goals", label: "Goals", icon: Target },
-  { href: "/projects", label: "Projects", icon: FolderKanban },
-  { href: "/categories", label: "Categories", icon: Shapes },
+  { href: "/work", label: "Work", icon: Compass },
 ] as const;
 
 function isCurrent(href: string, pathname: string): boolean {
@@ -52,7 +50,7 @@ export function TabBar() {
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 border-t bg-background/90 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+      className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-3 border-t bg-background/90 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
     >
       {NAV_ITEMS.map((item) => {
         const current = isCurrent(item.href, pathname);
