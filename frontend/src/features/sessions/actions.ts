@@ -7,7 +7,7 @@ import { requireUser } from "@/features/auth/current-user";
 import { scheduleEvaluation } from "@/features/evaluations/schedule";
 import { getTimeZone } from "@/features/timezone/time-zone";
 import { createClient } from "@/lib/supabase/server";
-import { durationSeconds } from "./duration";
+import { pausedSecondsAfterResume } from "./duration";
 import { parseSessionInput, type SessionInput } from "./session-input";
 import { parseSessionLog, resolveEndedAt } from "./session-log";
 import { isUuid } from "@/lib/uuid";
@@ -148,8 +148,10 @@ export async function resumeSession(id: string): Promise<void> {
       .from("sessions")
       .update({
         paused_at: null,
-        paused_seconds:
-          paused.paused_seconds + durationSeconds(new Date(pausedAt), now),
+        paused_seconds: pausedSecondsAfterResume(
+          { pausedAt, pausedSeconds: paused.paused_seconds },
+          now,
+        ),
         resumed_at: now.toISOString(),
       })
       .eq("id", id)

@@ -33,6 +33,17 @@ export function runningSeconds(
   );
 }
 
+/** Total paused time once the pause in progress ends at `resumedAt`. */
+export function pausedSecondsAfterResume(
+  session: { pausedAt: string; pausedSeconds: number },
+  resumedAt: Date,
+): number {
+  return (
+    session.pausedSeconds +
+    durationSeconds(new Date(session.pausedAt), resumedAt)
+  );
+}
+
 export function formatDuration(totalSeconds: number): string {
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);

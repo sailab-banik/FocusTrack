@@ -3,6 +3,7 @@ import {
   durationSeconds,
   formatClock,
   formatDuration,
+  pausedSecondsAfterResume,
   runningSeconds,
   sessionSeconds,
 } from "./duration";
@@ -62,6 +63,17 @@ describe("runningSeconds", () => {
         new Date("2026-10-05T08:59:58Z"),
       ),
     ).toBe(0);
+  });
+});
+
+describe("pausedSecondsAfterResume", () => {
+  it("adds the pause in progress to earlier pauses", () => {
+    expect(
+      pausedSecondsAfterResume(
+        { pausedAt: "2026-10-05T10:00:00Z", pausedSeconds: 600 },
+        new Date("2026-10-05T10:05:30Z"),
+      ),
+    ).toBe(930);
   });
 });
 

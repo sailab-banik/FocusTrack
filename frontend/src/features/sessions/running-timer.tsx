@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useOptimistic, useState, useTransition } from "react";
 import { Coffee, Hourglass, Pause, Play, Square } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import {
   durationSeconds,
   formatClock,
   formatDuration,
+  pausedSecondsAfterResume,
   runningSeconds,
 } from "./duration";
 import { StopSessionForm } from "./stop-session-form";
@@ -43,6 +44,13 @@ export function RunningTimer({
   // Set when Stop is tapped, so time spent writing the log is not counted.
   const [stoppedAt, setStoppedAt] = useState<Date | null>(null);
   const [switching, startSwitch] = useTransition();
+  // Shows a pause or resume as soon as it is tapped. The server's values
+  // replace it when the action's refresh lands, or undo it if the action fails.
+  const [pause, setOptimisticPause] = useOptimistic({
+    pausedAt,
+    pausedSeconds,
+    resumedAt,
+  });
   // "Keep going" quiets the break nudge for a while; a reload brings it back.
   const [snoozedUntil, setSnoozedUntil] = useState<Date | null>(null);
 
@@ -53,14 +61,41 @@ export function RunningTimer({
   }, [stoppedAt]);
 
   const elapsed = runningSeconds(
-    { startedAt, pausedAt, pausedSeconds },
+    { startedAt, pausedAt: pause.pausedAt, pausedSeconds: pause.pausedSeconds },
     stoppedAt ?? now,
   );
 
   const nudge =
     stoppedAt || (snoozedUntil && now < snoozedUntil)
       ? null
-      : runningNudge({ startedAt, pausedAt, resumedAt }, now);
+      : runningNudge(
+          { startedAt, pausedAt: pause.pausedAt, resumedAt: pause.resumedAt },
+          now,
+        );
+
+  function togglePause() {
+    // Not `disabled`: the button has already flipped, and dimming it would
+    // read as loading. Taps are ignored until the save lands instead.
+    if (switching) return;
+    const at = new Date();
+    setNow(at);
+    startSwitch(async () => {
+      if (pause.pausedAt) {
+        setOptimisticPause({
+          pausedAt: null,
+          pausedSeconds: pausedSecondsAfterResume(
+            { pausedAt: pause.pausedAt, pausedSeconds: pause.pausedSeconds },
+            at,
+          ),
+          resumedAt: at.toISOString(),
+        });
+        await resumeSession(sessionId);
+      } else {
+        setOptimisticPause({ ...pause, pausedAt: at.toISOString() });
+        await pauseSession(sessionId);
+      }
+    });
+  }
 
   // The tab title is the one part of the app visible from another tab.
   const tabTitle =
@@ -125,7 +160,7 @@ export function RunningTimer({
             {formatClock(elapsed)}
           </p>
         ) : (
-          pausedAt && (
+          pause.pausedAt && (
             <p className="flex shrink-0 flex-col items-end gap-1 text-sm text-muted-foreground">
               Paused for
               <span
@@ -133,7 +168,7 @@ export function RunningTimer({
                 suppressHydrationWarning
               >
                 {formatClock(
-                  Math.max(0, durationSeconds(new Date(pausedAt), now)),
+                  Math.max(0, durationSeconds(new Date(pause.pausedAt), now)),
                 )}
               </span>
             </p>
@@ -151,17 +186,19 @@ export function RunningTimer({
         />
       ) : (
         <>
-          <div className={cn("transition-opacity", pausedAt && "opacity-40")}>
+          <div
+            className={cn("transition-opacity", pause.pausedAt && "opacity-40")}
+          >
             <TimerFace elapsedSeconds={elapsed} />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {pausedAt ? (
+            {pause.pausedAt ? (
               <Button
                 size="lg"
                 variant="kind"
                 className="h-14 rounded-xl text-base"
-                disabled={switching}
-                onClick={() => startSwitch(() => resumeSession(sessionId))}
+                aria-disabled={switching}
+                onClick={togglePause}
               >
                 <Play className="fill-current" />
                 Resume
@@ -171,8 +208,8 @@ export function RunningTimer({
                 size="lg"
                 variant="outline"
                 className="h-14 rounded-xl text-base"
-                disabled={switching}
-                onClick={() => startSwitch(() => pauseSession(sessionId))}
+                aria-disabled={switching}
+                onClick={togglePause}
               >
                 <Pause className="fill-current" />
                 Pause
@@ -180,10 +217,12 @@ export function RunningTimer({
             )}
             <Button
               size="lg"
-              variant={pausedAt ? "outline" : "default"}
+              variant={pause.pausedAt ? "outline" : "default"}
               className="h-14 rounded-xl text-base"
-              disabled={switching}
-              onClick={() => setStoppedAt(new Date())}
+              aria-disabled={switching}
+              onClick={() => {
+                if (!switching) setStoppedAt(new Date());
+              }}
             >
               <Square className="fill-current" />
               Stop session
