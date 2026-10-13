@@ -63,20 +63,17 @@ A timed piece of work.
 | Difficulty | no | |
 | User notes | no | |
 
-### AI evaluation
+### AI report
 
-An evaluation of a completed session. Initial dimensions:
+A written read of one closed day, week, or month: a headline, 2 to 4 observations with evidence, and one next action. It compares the period with the ones before it (7 days, 4 weeks, or 3 months). Reports replaced per-session evaluation, which scored each session on six dimensions and was rarely read.
 
-- Output
-- Skill growth
-- Goal alignment
-- Leverage
-- Strategic value
-- Overall contribution
+A report is an AI-assisted read, not an objective measurement, and the UI must present it that way.
 
-These are AI-assisted estimates, not objective measurements, and the UI must present them that way.
-
-**(proposed)** Store the provider, model, and prompt version with each evaluation so scores stay comparable when prompts change. Evaluation runs after the session is saved and never blocks saving.
+- Written automatically, never on request: once per period that has finished sessions, the first time the app is opened after the period ends. There is no cron job, so nothing is written for users who are away.
+- One report per period per user is the cap on provider calls. The row is claimed before the provider is called and cannot be edited once written; a failed attempt is retried on a later open.
+- Only yesterday, last week, and last month are written. A day followed by a day without opening the app gets no daily report; the weekly one covers it.
+- The provider, model, and prompt version are stored with each report.
+- A bell in the header says when a new report is ready and links to it. Nothing is stored for it: a notice is the newest report of each kind written in the last 7 days, so it expires by itself, and what has been seen is one timestamp in a per-device cookie. Opening the bell or the Review page marks the notices seen.
 
 ### Todo
 
@@ -119,11 +116,11 @@ The system should eventually measure the following. It never optimizes for hours
 |---|---|---|
 | Time allocation | How time is distributed across categories/projects | Sessions |
 | Output | What was actually produced | Session outcomes |
-| Contribution | How strongly the work contributes to the user's goals | AI evaluation |
+| Contribution | How strongly the work contributes to the user's goals | AI report |
 | Execution ratio | Execution time relative to planning/learning/brainstorming | Sessions + category kind |
 | Time to first meaningful output | How long it takes to move from an idea to tangible output | Sessions per project |
 | Completion velocity | How quickly meaningful work is completed | Sessions, todos, projects |
-| Compounding work | How much work creates reusable or long-term value | AI evaluation (leverage) |
+| Compounding work | How much work creates reusable or long-term value | AI report |
 | Goal alignment | How much tracked effort contributes to stated goals | Sessions → projects → goals |
 | Future contribution | High-level AI-assisted estimate of how current work contributes to the longer-term direction | AI analysis |
 
@@ -186,15 +183,15 @@ Build the smallest useful version first. Do not implement the long-term vision a
 | 5 | Session logging | Stopping the timer captures description and outcome, plus optional energy, difficulty, and notes; duration is tested |
 | 6 | Session history | User can browse past sessions and edit or delete them |
 | 7 | Basic goals | User can create goals and link projects to them |
-| 8 | Basic AI evaluation | A completed session receives scores on the six dimensions with a short critical rationale; the app works fully if the AI call fails or no provider is configured |
+| 8 | Basic AI evaluation | A completed session receives scores on the six dimensions with a short critical rationale; the app works fully if the AI call fails or no provider is configured. Since removed in favor of AI reports (section 2) |
 
 ### Phase 2 — Progressive additions, in order
 
-1. Weekly analysis: done, moved ahead of AI todos. The Review page shows this week against the four before it (time, execution share, goal share, active days), computed without AI. On request it adds an AI review (headline, 2 to 4 observations with evidence, one next action) stored in `weekly_reviews` with its prompt version. Weeks run Monday to Sunday in the user's timezone.
+1. Weekly analysis and AI reports: done, moved ahead of AI todos. The Review page shows this week against the four before it (time, execution share, goal share, active days), computed without AI, and the newest daily, weekly, and monthly AI report (section 2), stored in `reports`. Weeks run Monday to Sunday in the user's timezone.
 2. AI todos
 3. Personal Context Library
 4. RAG
-5. Daily analysis and long-term contribution analytics
+5. Long-term contribution analytics
 6. Multi-user SaaS capabilities
 7. Billing
 
@@ -212,6 +209,6 @@ These are gaps in the requirements. Each has a proposed default that will be use
 | 6 | Does the timer support pause/resume? | Decided: yes. Paused time is left out of the duration; a session stopped while paused ends when the pause began |
 | 7 | Can sessions be added manually after the fact? | Yes, via session history |
 | 8 | What does PWA mean for Phase 1? | Installable and responsive; no offline sync |
-| 9 | What scale do evaluation scores use? | 1–5 per dimension |
+| 9 | What scale do evaluation scores use? | No longer applies: per-session scores were removed with evaluation |
 | 10 | Which sign-in methods? | Email-based Supabase Auth |
 | 11 | Package manager and test runner? | Decided: pnpm and Vitest |

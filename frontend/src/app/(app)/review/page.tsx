@@ -1,24 +1,50 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/page-header";
 import { getAiProvider } from "@/features/ai/get-provider";
-import { getLatestReview } from "@/features/review/queries";
 import { GoalSplit } from "@/features/review/goal-split";
 import { goalTimes } from "@/features/review/goal-times";
-import { ReviewPanel } from "@/features/review/review-panel";
+import { loadPeriodData } from "@/features/review/period-data";
+import { recentWeeks, type PeriodKind } from "@/features/review/periods";
+import {
+  getLatestReport,
+  listKindsBeingWritten,
+  type StoredReport,
+} from "@/features/review/queries";
+import { ReportPanel } from "@/features/review/report-panel";
+import { ReportTabs } from "@/features/review/report-tabs";
 import { WeekChart } from "@/features/review/week-chart";
-import { loadWeekData } from "@/features/review/week-data";
 import { formatDuration } from "@/features/sessions/duration";
 import { getTimeZone } from "@/features/timezone/time-zone";
 import { percent } from "@/features/work/allocation";
 
 export const metadata: Metadata = { title: "Review · FocusTrack" };
 
+const PREVIOUS_WEEKS = 4;
+
 export default async function ReviewPage() {
   const now = new Date();
   const timeZone = await getTimeZone();
-  const data = await loadWeekData(now, timeZone);
-  const review = await getLatestReview(data.currentWeek.startKey);
+  const weeks = recentWeeks(now, timeZone, PREVIOUS_WEEKS);
+  const [data, day, week, month, beingWritten] = await Promise.all([
+    loadPeriodData(weeks, timeZone),
+    getLatestReport("day"),
+    getLatestReport("week"),
+    getLatestReport("month"),
+    listKindsBeingWritten(now),
+  ]);
   const thisWeek = data.stats.at(-1)!;
+  const thisWeekStart = weeks.at(-1)!.start;
+  const aiConfigured = getAiProvider() !== null;
+  const panel = (kind: PeriodKind, report: StoredReport | null) => (
+    <ReportPanel
+      kind={kind}
+      report={report}
+      beingWritten={beingWritten.includes(kind)}
+      aiConfigured={aiConfigured}
+      now={now}
+      timeZone={timeZone}
+    />
+  );
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-14 px-4 py-8 sm:py-12">
@@ -40,14 +66,14 @@ export default async function ReviewPage() {
 
       <section aria-labelledby="ai-heading" className="flex flex-col gap-5">
         <h2 id="ai-heading" className="text-xl font-semibold tracking-tight">
-          AI review of this week
+          AI reports
         </h2>
-        <ReviewPanel
-          review={review}
-          aiConfigured={getAiProvider() !== null}
-          hasSessions={thisWeek.sessionCount > 0}
-          now={now}
-          timeZone={timeZone}
+        <ReportTabs
+          panels={{
+            day: panel("day", day),
+            week: panel("week", week),
+            month: panel("month", month),
+          }}
         />
       </section>
 
@@ -57,7 +83,9 @@ export default async function ReviewPage() {
         </h2>
         <GoalSplit
           rows={goalTimes(
-            data.thisWeekSpans,
+            data.spans.filter(
+              (span) => new Date(span.startedAt) >= thisWeekStart,
+            ),
             data.categories,
             data.goals,
             data.projects,

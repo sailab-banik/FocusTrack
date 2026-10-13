@@ -11,7 +11,7 @@ It is **not** a generic todo app, habit tracker, life tracker, or journal.
 
 ## Status
 
-Phase 1 (milestones 0–8) is complete: auth, categories, projects, timer, session logging, history, goals, and AI session evaluation (OpenAI). Since then: pause/resume, in-app nudges (PLAN.md section 5), and the weekly Review page with an on-request AI review (Phase 2, item 1). Goals, projects, and categories live on one Work page; the nav is Timer, History, Work, Review. Next is AI todos.
+Phase 1 (milestones 0–8) is complete: auth, categories, projects, timer, session logging, history, and goals. Since then: pause/resume, in-app nudges (PLAN.md section 5), and the Review page with automatic daily, weekly, and monthly AI reports (Phase 2, item 1), which replaced per-session AI evaluation. Goals, projects, and categories live on one Work page; the nav is Timer, History, Work, Review. Next is AI todos.
 
 ## Commands
 
@@ -41,7 +41,7 @@ Backend (`backend/`, local Supabase, needs Docker):
 | `pnpm test` | Run pgTAP database tests in `supabase/tests/` (RLS checks) |
 | `pnpm types` | Regenerate `frontend/src/lib/supabase/database.types.ts` from the local database |
 
-Environment: copy `frontend/.env.example` to `frontend/.env.local` and fill in the Supabase URL and publishable key. Optional, server-only: `OPENAI_API_KEY` turns on AI evaluation, and `OPENAI_MODEL` overrides the default model (`gpt-6.1-sol`). Without a key the app works fully and evaluation is shown as off.
+Environment: copy `frontend/.env.example` to `frontend/.env.local` and fill in the Supabase URL and publishable key. Optional, server-only: `OPENAI_API_KEY` turns on AI reports, and `OPENAI_MODEL` overrides the default model (`gpt-6.1-sol`). Without a key the app works fully and reports are shown as off.
 
 Hosted Supabase auth setup (dashboard, not in code): set Site URL to the deployed app URL, and change the "Confirm signup" email template link to `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`. Local Supabase skips email confirmation.
 
@@ -65,7 +65,7 @@ backend/                   Database and auth
 - There is no separate backend service. Server logic lives in Next.js server actions and route handlers; `backend/` owns the schema, RLS policies, and Supabase config.
 - Next.js 16: request interception is `src/proxy.ts`, not `middleware.ts`. Current docs ship in `frontend/node_modules/next/dist/docs/`.
 - Tests sit next to the code they cover as `*.test.ts`.
-- AI: features call the `AiProvider` interface (`src/features/ai/provider.ts`), never a vendor API; `getAiProvider()` returns null when unconfigured. Evaluations run via `after()` so saving never waits on the provider. Bump `PROMPT_VERSION` in `src/features/evaluations/prompt.ts` whenever the prompt or schema changes.
+- AI: features call the `AiProvider` interface (`src/features/ai/provider.ts`), never a vendor API; `getAiProvider()` returns null when unconfigured. Reports are never requested by the user: `DueReports` in the app layout calls `requestDueReports` when the app is opened, which claims a row in `reports` per due period and writes it via `after()`. One row per user and period is the cap on provider calls, so keep every AI call behind a claim like it. Bump `PROMPT_VERSION` in `src/features/review/prompt.ts` whenever the prompt or schema changes.
 - Times: the server renders in UTC, so anything showing wall-clock times or day boundaries uses the user's timezone from `getTimeZone()` (a `tz` cookie mirrored from the browser by `TimeZoneSync`) and the helpers in `src/features/timezone/zoned-time.ts`.
 
 ## Stack
@@ -89,6 +89,8 @@ Never track: sleep, food, health, location, generic personal habits, personal di
 Never add: habit tracking, sleep tracking, generic reminders, calendar replacement, social feeds, gamification-heavy systems, complex notifications, team surveillance, employee monitoring.
 
 Nudges are the one exception to "no reminders or notifications", and only in this form: in-app, computed from tracked sessions, stating their evidence, with one concrete action. No push, email, schedules, or streaks. Rules are in PLAN.md section 5.
+
+The header bell is the other in-app notice, and it only says that a new AI report is ready. It stores nothing: a notice is a report written in the last 7 days, and what has been seen is one cookie timestamp. Do not add a notifications table or other kinds of notice to it.
 
 Do not add a feature because it is common in productivity apps. Every feature must support **better allocation of time toward meaningful long-term work**.
 

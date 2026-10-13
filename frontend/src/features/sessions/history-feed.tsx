@@ -4,7 +4,7 @@ import { useEffect, useEffectEvent, useRef, useState, useTransition } from "reac
 import { Button } from "@/components/ui/button";
 import type { Category } from "@/features/categories/queries";
 import { loadOlderSessions } from "./load-older";
-import type { HistorySession } from "./queries";
+import type { PastSession } from "./queries";
 import { SessionHistory } from "./session-history";
 
 /**
@@ -19,7 +19,7 @@ export function HistoryFeed({
   timeZone,
   now,
 }: {
-  initialSessions: HistorySession[];
+  initialSessions: PastSession[];
   initialHasMore: boolean;
   projects: { id: string; name: string }[];
   categories: Category[];

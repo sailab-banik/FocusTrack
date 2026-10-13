@@ -2,19 +2,18 @@ import { listCategories } from "@/features/categories/queries";
 import { listGoals } from "@/features/goals/queries";
 import { listProjects } from "@/features/projects/queries";
 import { listSessionSpans } from "@/features/sessions/queries";
-import { localDayKey } from "@/features/timezone/zoned-time";
-import { isoWeekday, recentWeeks, weekStats } from "./weeks";
+import { periodStats, type Period } from "./periods";
 
-export const PREVIOUS_WEEKS = 4;
-
-/** Everything the review page and the review writer both start from. */
-export async function loadWeekData(now: Date, timeZone: string) {
-  const weeks = recentWeeks(now, timeZone, PREVIOUS_WEEKS);
+/**
+ * Stats for the given periods, oldest first, and what they were computed
+ * from. The review page and the report writer both start here.
+ */
+export async function loadPeriodData(periods: Period[], timeZone: string) {
   const [goals, projects, categories, spans] = await Promise.all([
     listGoals(),
     listProjects(),
     listCategories(),
-    listSessionSpans(weeks[0].start),
+    listSessionSpans(periods[0].start),
   ]);
 
   const activeGoalIds = new Set(
@@ -26,14 +25,10 @@ export async function loadWeekData(now: Date, timeZone: string) {
       .filter((p) => p.goalId !== null && activeGoalIds.has(p.goalId))
       .map((p) => p.id),
   );
-  const currentWeek = weeks.at(-1)!;
 
   return {
-    weeks,
-    currentWeek,
-    daysCovered: isoWeekday(localDayKey(now, timeZone)),
-    stats: weekStats(
-      weeks,
+    stats: periodStats(
+      periods,
       spans,
       new Map(categories.map((c) => [c.id, c.kind])),
       servingProjectIds,
@@ -42,8 +37,6 @@ export async function loadWeekData(now: Date, timeZone: string) {
     goals,
     projects,
     categories,
-    thisWeekSpans: spans.filter(
-      (span) => new Date(span.startedAt) >= currentWeek.start,
-    ),
+    spans,
   };
 }

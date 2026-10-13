@@ -11,7 +11,7 @@ import {
   groupSessionsByDay,
 } from "./history";
 import { KindTotals } from "./kind-totals";
-import type { HistorySession } from "./queries";
+import type { PastSession } from "./queries";
 
 type Categories = Map<string, Category>;
 
@@ -22,7 +22,7 @@ export function SessionHistory({
   timeZone,
   now,
 }: {
-  sessions: HistorySession[];
+  sessions: PastSession[];
   projectNames: Map<string, string>;
   categories: Categories;
   timeZone: string;
@@ -77,7 +77,7 @@ function SessionItem({
   category,
   timeZone,
 }: {
-  session: HistorySession;
+  session: PastSession;
   projectName: string;
   category: Category | undefined;
   timeZone: string;
@@ -121,7 +121,6 @@ function SessionItem({
             pausedSeconds={session.pausedSeconds}
             energy={session.energy}
             difficulty={session.difficulty}
-            overallScore={session.overallScore}
           />
         </div>
       </Link>
@@ -133,19 +132,16 @@ function Ratings({
   pausedSeconds,
   energy,
   difficulty,
-  overallScore,
 }: {
   pausedSeconds: number;
   energy: number | null;
   difficulty: number | null;
-  overallScore: number | null;
 }) {
   const parts = [
     // Explains why the duration is shorter than the time range.
     pausedSeconds >= 60 && `Paused ${formatDuration(pausedSeconds)}`,
     energy !== null && `Energy ${energy}/5`,
     difficulty !== null && `Difficulty ${difficulty}/5`,
-    overallScore !== null && `AI overall ${overallScore}/5 (estimate)`,
   ].filter((part) => part !== false);
   if (parts.length === 0) return null;
   return (

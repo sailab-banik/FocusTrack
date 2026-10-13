@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
-import { getAiProvider } from "@/features/ai/get-provider";
 import { listCategories } from "@/features/categories/queries";
-import { EvaluationPanel } from "@/features/evaluations/evaluation-panel";
-import { getEvaluation } from "@/features/evaluations/queries";
 import { listProjects } from "@/features/projects/queries";
 import { updateSession } from "@/features/sessions/actions";
 import { DeleteSessionButton } from "@/features/sessions/delete-session-button";
@@ -23,37 +20,24 @@ export default async function EditSessionPage({
   const { id } = await params;
   if (!isUuid(id)) notFound();
 
-  const [session, evaluation, projects, categories, timeZone] =
-    await Promise.all([
-      getPastSession(id),
-      getEvaluation(id),
-      listProjects(),
-      listCategories(),
-      getTimeZone(),
-    ]);
+  const [session, projects, categories, timeZone] = await Promise.all([
+    getPastSession(id),
+    listProjects(),
+    listCategories(),
+    getTimeZone(),
+  ]);
   if (!session) notFound();
 
   return (
-    <main className="mx-auto grid w-full max-w-2xl gap-8 px-4 py-8 sm:py-12 lg:max-w-5xl lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-x-12">
-      <div className="lg:col-span-2">
-        <PageHeader
-          title="Session"
-          description={
-            session.pausedSeconds >= 60
-              ? `${formatDuration(sessionSeconds(session))} worked, ${formatDuration(session.pausedSeconds)} paused.`
-              : `${formatDuration(sessionSeconds(session))} worked.`
-          }
-        />
-      </div>
-      {/* Beside the form on wide screens, above it on narrow ones. */}
-      <div className="lg:sticky lg:top-22 lg:col-start-2 lg:row-span-2 lg:row-start-2 lg:self-start">
-        <EvaluationPanel
-          sessionId={session.id}
-          evaluation={evaluation}
-          aiConfigured={getAiProvider() !== null}
-          logged={Boolean(session.description && session.outcome)}
-        />
-      </div>
+    <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-8 sm:py-12">
+      <PageHeader
+        title="Session"
+        description={
+          session.pausedSeconds >= 60
+            ? `${formatDuration(sessionSeconds(session))} worked, ${formatDuration(session.pausedSeconds)} paused.`
+            : `${formatDuration(sessionSeconds(session))} worked.`
+        }
+      />
       <SessionForm
         action={updateSession}
         sessionId={session.id}

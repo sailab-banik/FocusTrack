@@ -68,24 +68,18 @@ isOneToOne: false
       referencedColumns: ["id","user_id"]
     }
                   ]
-                },"session_evaluations": {
+                },"reports": {
                   Row: {
-                    "created_at": string,"goal_alignment": number,"id": string,"leverage": number,"model": string,"next_action": string,"output": number,"overall_contribution": number,"prompt_version": string,"provider": string,"rationale": string,"session_id": string,"skill_growth": number,"strategic_value": number,"user_id": string
+                    "claimed_at": string,"headline": string | null,"id": string,"model": string | null,"next_action": string | null,"observations": Json | null,"period": string,"period_start": string,"prompt_version": string | null,"provider": string | null,"user_id": string,"written_at": string | null
                   }
                   Insert: {
-                    "created_at"?: string,"goal_alignment": number,"id"?: string,"leverage": number,"model": string,"next_action": string,"output": number,"overall_contribution": number,"prompt_version": string,"provider": string,"rationale": string,"session_id": string,"skill_growth": number,"strategic_value": number,"user_id"?: string
+                    "claimed_at"?: string,"headline"?: string | null,"id"?: string,"model"?: string | null,"next_action"?: string | null,"observations"?: Json | null,"period": string,"period_start": string,"prompt_version"?: string | null,"provider"?: string | null,"user_id"?: string,"written_at"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"goal_alignment"?: number,"id"?: string,"leverage"?: number,"model"?: string,"next_action"?: string,"output"?: number,"overall_contribution"?: number,"prompt_version"?: string,"provider"?: string,"rationale"?: string,"session_id"?: string,"skill_growth"?: number,"strategic_value"?: number,"user_id"?: string
+                    "claimed_at"?: string,"headline"?: string | null,"id"?: string,"model"?: string | null,"next_action"?: string | null,"observations"?: Json | null,"period"?: string,"period_start"?: string,"prompt_version"?: string | null,"provider"?: string | null,"user_id"?: string,"written_at"?: string | null
                   }
                   Relationships: [
-                    {
-      foreignKeyName: "session_evaluations_session_id_user_id_fkey"
-      columns: ["session_id","user_id"]
-isOneToOne: false
-      referencedRelation: "sessions"
-      referencedColumns: ["id","user_id"]
-    }
+                    
                   ]
                 },"sessions": {
                   Row: {
@@ -111,19 +105,6 @@ isOneToOne: false
       referencedRelation: "projects"
       referencedColumns: ["id","user_id"]
     }
-                  ]
-                },"weekly_reviews": {
-                  Row: {
-                    "created_at": string,"headline": string,"id": string,"model": string,"next_action": string,"observations": NonNullable<Json>,"prompt_version": string,"provider": string,"user_id": string,"week_start": string
-                  }
-                  Insert: {
-                    "created_at"?: string,"headline": string,"id"?: string,"model": string,"next_action": string,"observations": NonNullable<Json>,"prompt_version": string,"provider": string,"user_id"?: string,"week_start": string
-                  }
-                  Update: {
-                    "created_at"?: string,"headline"?: string,"id"?: string,"model"?: string,"next_action"?: string,"observations"?: NonNullable<Json>,"prompt_version"?: string,"provider"?: string,"user_id"?: string,"week_start"?: string
-                  }
-                  Relationships: [
-                    
                   ]
                 }
           }

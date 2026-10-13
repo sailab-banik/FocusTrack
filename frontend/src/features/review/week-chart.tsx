@@ -2,7 +2,7 @@ import { cn } from "cn";
 import { KindMark } from "@/features/categories/kind-mark";
 import { formatDuration } from "@/features/sessions/duration";
 import { percent } from "@/features/work/allocation";
-import type { WeekStats } from "./weeks";
+import type { PeriodStats } from "./periods";
 
 const BAR_AREA_PX = 160;
 // Chart and table share one grid so each bar sits over its column.
@@ -32,7 +32,7 @@ function share(part: number, whole: number): string {
  * same numbers in a table underneath. The chart is a visual aid only: the
  * table carries every value for screen readers and keyboards.
  */
-export function WeekChart({ stats }: { stats: WeekStats[] }) {
+export function WeekChart({ stats }: { stats: PeriodStats[] }) {
   const maxSeconds = Math.max(1, ...stats.map((week) => week.totalSeconds));
   const current = stats.length - 1;
 
@@ -125,8 +125,8 @@ function MetricRow({
   value,
 }: {
   label: string;
-  stats: WeekStats[];
-  value: (week: WeekStats) => React.ReactNode;
+  stats: PeriodStats[];
+  value: (week: PeriodStats) => React.ReactNode;
 }) {
   return (
     <tr>
@@ -142,7 +142,13 @@ function MetricRow({
   );
 }
 
-function WeekColumn({ week, heightPx }: { week: WeekStats; heightPx: number }) {
+function WeekColumn({
+  week,
+  heightPx,
+}: {
+  week: PeriodStats;
+  heightPx: number;
+}) {
   const preparation = week.totalSeconds - week.executionSeconds;
 
   return (

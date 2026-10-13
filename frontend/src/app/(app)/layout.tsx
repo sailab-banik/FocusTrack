@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { TabBar, TopNav } from "@/components/app-nav";
 import { Brand } from "@/components/brand";
-import { Button } from "@/components/ui/button";
-import { signOut } from "@/features/auth/actions";
+import { AccountMenu } from "@/features/auth/account-menu";
 import { requireUser } from "@/features/auth/current-user";
+import { DueReports } from "@/features/review/due-reports";
+import { ReportNotifications } from "@/features/review/report-notifications";
 import { getTimeZone } from "@/features/timezone/time-zone";
 import { TimeZoneSync } from "@/features/timezone/time-zone-sync";
 
@@ -13,6 +15,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <>
       <TimeZoneSync serverTimeZone={timeZone} />
+      <DueReports />
       <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center justify-between gap-4 border-b bg-background/85 px-4 backdrop-blur sm:px-6">
         <div className="flex min-w-0 items-center gap-6">
           <Link
@@ -23,15 +26,12 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           </Link>
           <TopNav />
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <span className="hidden max-w-48 truncate text-sm text-muted-foreground lg:inline">
-            {user.email}
-          </span>
-          <form action={signOut}>
-            <Button type="submit" variant="ghost" size="sm">
-              Sign out
-            </Button>
-          </form>
+        <div className="flex shrink-0 items-center gap-1">
+          {/* The placeholder holds the bell's place while its query runs. */}
+          <Suspense fallback={<span className="size-9" />}>
+            <ReportNotifications />
+          </Suspense>
+          <AccountMenu email={user.email} />
         </div>
       </header>
       {/* Bottom padding keeps content clear of the fixed tab bar on phones. */}

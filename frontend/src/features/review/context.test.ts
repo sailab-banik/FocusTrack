@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildReviewContext, SESSION_LIMIT } from "./context";
+import { buildReportContext, SESSION_LIMIT } from "./context";
 
 const categories = [
   { id: "build", name: "Build", kind: "execution" as const },
@@ -42,27 +42,29 @@ function session(projectId: string, categoryId: string, outcome: string) {
     endedAt: "2026-10-13T10:00:00Z",
     pausedSeconds: 0,
     outcome,
-    aiOverall: null,
   };
 }
 
-function build(sessions = [session("app", "build", "Shipped")]) {
-  return buildReviewContext({
+function build(
+  sessions = [session("app", "build", "Shipped")],
+  timeZone = "UTC",
+) {
+  return buildReportContext({
+    kind: "week",
     stats,
-    daysCovered: 2,
     goals,
     projects,
     categories,
     sessions,
-    timeZone: "UTC",
+    timeZone,
   });
 }
 
-describe("buildReviewContext", () => {
-  it("summarizes the current week in minutes", () => {
-    expect(build().currentWeek).toEqual({
+describe("buildReportContext", () => {
+  it("summarizes the reported period in minutes", () => {
+    expect(build().period).toEqual({
+      kind: "week",
       startDate: "2026-10-12",
-      daysCovered: 2,
       totalMinutes: 90,
       executionMinutes: 60,
       preparationMinutes: 30,
@@ -72,8 +74,8 @@ describe("buildReviewContext", () => {
     });
   });
 
-  it("reduces previous weeks to shares", () => {
-    expect(build().previousWeeks).toEqual([
+  it("reduces previous periods to shares", () => {
+    expect(build().previousPeriods).toEqual([
       {
         startDate: "2026-10-05",
         totalMinutes: 600,
@@ -102,18 +104,33 @@ describe("buildReviewContext", () => {
     ]);
   });
 
-  it("lists sessions with weekday, kind, and outcome", () => {
-    expect(build().sessionsThisWeek).toEqual([
+  it("lists sessions with date, start time, kind, and outcome", () => {
+    expect(build().sessions).toEqual([
       {
+        date: "2026-10-13",
         weekday: "Tue",
+        startTime: "09:00",
         project: "App",
         category: "Build",
         categoryKind: "execution",
         minutes: 60,
         outcome: "Shipped",
-        aiOverall: null,
       },
     ]);
+  });
+
+  it("dates sessions in the user's timezone", () => {
+    const late = {
+      ...session("app", "build", "Shipped"),
+      startedAt: "2026-10-13T20:00:00Z",
+      endedAt: "2026-10-13T21:00:00Z",
+    };
+    const [listed] = build([late], "Asia/Kolkata").sessions;
+    expect(listed).toMatchObject({
+      date: "2026-10-14",
+      weekday: "Wed",
+      startTime: "01:30",
+    });
   });
 
   it("caps the session list and long outcomes", () => {
@@ -121,7 +138,7 @@ describe("buildReviewContext", () => {
       session("side", "learn", "x".repeat(500)),
     );
     const context = build(many);
-    expect(context.sessionsThisWeek).toHaveLength(SESSION_LIMIT);
-    expect(context.sessionsThisWeek[0].outcome).toHaveLength(200);
+    expect(context.sessions).toHaveLength(SESSION_LIMIT);
+    expect(context.sessions[0].outcome).toHaveLength(200);
   });
 });

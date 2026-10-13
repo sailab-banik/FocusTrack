@@ -64,27 +64,20 @@ export type PastSession = {
   notes: string | null;
 };
 
-// The AI estimate, if the session has been evaluated.
-export type HistorySession = PastSession & { overallScore: number | null };
-
 export const HISTORY_PAGE_SIZE = 50;
 
 // One literal string: Supabase infers the row type from it.
 const PAST_SESSION_COLUMNS =
   "id, project_id, category_id, started_at, ended_at, paused_seconds, description, outcome, energy, difficulty, notes";
 
-// Embedding the score saves a second round trip for the history page.
-const HISTORY_SESSION_COLUMNS =
-  `${PAST_SESSION_COLUMNS}, session_evaluations(overall_contribution)` as const;
-
 /** Newest first. Fetches one extra row to tell whether older sessions exist. */
 export async function listPastSessions(
   before: Date | null,
-): Promise<{ sessions: HistorySession[]; hasMore: boolean }> {
+): Promise<{ sessions: PastSession[]; hasMore: boolean }> {
   const supabase = await createClient();
   let query = supabase
     .from("sessions")
-    .select(HISTORY_SESSION_COLUMNS)
+    .select(PAST_SESSION_COLUMNS)
     .not("ended_at", "is", null)
     .order("started_at", { ascending: false })
     .limit(HISTORY_PAGE_SIZE + 1);
@@ -93,11 +86,7 @@ export async function listPastSessions(
   const { data, error } = await query;
   if (error) throw error;
   return {
-    sessions: data.slice(0, HISTORY_PAGE_SIZE).map((row) => ({
-      ...toPastSession(row),
-      // At most one: session_evaluations.session_id is unique.
-      overallScore: row.session_evaluations[0]?.overall_contribution ?? null,
-    })),
+    sessions: data.slice(0, HISTORY_PAGE_SIZE).map(toPastSession),
     hasMore: data.length > HISTORY_PAGE_SIZE,
   };
 }

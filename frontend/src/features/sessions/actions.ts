@@ -4,7 +4,6 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/features/auth/current-user";
-import { scheduleEvaluation } from "@/features/evaluations/schedule";
 import { getTimeZone } from "@/features/timezone/time-zone";
 import { createClient } from "@/lib/supabase/server";
 import { pausedSecondsAfterResume } from "./duration";
@@ -111,7 +110,6 @@ export async function stopSession(
   if (error) throw error;
   refresh();
   if (data.length === 0) return { status: "error", message: ALREADY_STOPPED };
-  scheduleEvaluation(id);
   return { status: "idle" };
 }
 
@@ -194,13 +192,8 @@ export async function createSession(
   if (!parsed.ok) return { status: "error", message: parsed.error };
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("sessions")
-    .insert(toRow(parsed.input))
-    .select("id")
-    .single();
+  const { error } = await supabase.from("sessions").insert(toRow(parsed.input));
   if (error) return saveFailure(error);
-  scheduleEvaluation(data.id);
   redirect(HISTORY_PATH);
 }
 
@@ -234,8 +227,6 @@ export async function updateSession(
   if (data.length === 0) {
     return { status: "error", message: "This session no longer exists." };
   }
-  // The log or times may have changed, so the old evaluation is stale.
-  scheduleEvaluation(id);
   redirect(HISTORY_PATH);
 }
 

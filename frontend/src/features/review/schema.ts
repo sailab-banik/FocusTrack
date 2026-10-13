@@ -2,7 +2,7 @@ import type { JsonSchema } from "@/features/ai/provider";
 
 export type Observation = { title: string; evidence: string };
 
-export type ReviewResult = {
+export type ReportResult = {
   headline: string;
   observations: Observation[];
   next_action: string;
@@ -11,7 +11,7 @@ export type ReviewResult = {
 const LIMITS = { headline: 300, title: 80, evidence: 600, next_action: 500 };
 const MAX_OBSERVATIONS = 4;
 
-export const REVIEW_SCHEMA: JsonSchema = {
+export const REPORT_SCHEMA: JsonSchema = {
   type: "object",
   properties: {
     headline: { type: "string" },
@@ -34,13 +34,13 @@ export const REVIEW_SCHEMA: JsonSchema = {
 };
 
 /** Validates a provider response. Throws: a bad response is not recoverable. */
-export function parseReview(raw: unknown): ReviewResult {
+export function parseReport(raw: unknown): ReportResult {
   if (typeof raw !== "object" || raw === null) {
-    throw new Error("Review is not an object");
+    throw new Error("Report is not an object");
   }
   const record = raw as Record<string, unknown>;
   if (!Array.isArray(record.observations) || record.observations.length === 0) {
-    throw new Error("Review has no observations");
+    throw new Error("Report has no observations");
   }
 
   return {
@@ -68,7 +68,7 @@ export function parseReview(raw: unknown): ReviewResult {
 
 function requiredText(value: unknown, field: string, limit: number): string {
   if (typeof value !== "string" || value.trim() === "") {
-    throw new Error(`Review "${field}" is missing`);
+    throw new Error(`Report "${field}" is missing`);
   }
   // Truncate rather than fail: an overly long sentence is still useful.
   return value.trim().slice(0, limit);

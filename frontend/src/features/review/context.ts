@@ -3,18 +3,17 @@ import type { Category } from "@/features/categories/queries";
 import type { Goal } from "@/features/goals/queries";
 import type { Project } from "@/features/projects/queries";
 import { sessionSeconds } from "@/features/sessions/duration";
-import { localDayKey } from "@/features/timezone/zoned-time";
+import { formatLocalTime, localDayKey } from "@/features/timezone/zoned-time";
 import { allocate, NO_TIME, percent } from "@/features/work/allocation";
-import { isoWeekday, type WeekStats } from "./weeks";
+import { isoWeekday, type PeriodKind, type PeriodStats } from "./periods";
 
-export type WeekSession = {
+export type PeriodSession = {
   projectId: string;
   categoryId: string;
   startedAt: string;
   endedAt: string;
   pausedSeconds: number;
   outcome: string | null;
-  aiOverall: number | null;
 };
 
 type ProjectMinutes = {
@@ -25,12 +24,12 @@ type ProjectMinutes = {
 
 /**
  * What the model sees. Deliberately minimal: aggregates, goal and project
- * names, and this week's outcomes. No notes, descriptions, or account details.
+ * names, and the period's outcomes. No notes, descriptions, or account details.
  */
-export type ReviewContext = {
-  currentWeek: {
+export type ReportContext = {
+  period: {
+    kind: PeriodKind;
     startDate: string;
-    daysCovered: number;
     totalMinutes: number;
     executionMinutes: number;
     preparationMinutes: number;
@@ -38,7 +37,7 @@ export type ReviewContext = {
     sessionCount: number;
     activeDays: number;
   };
-  previousWeeks: {
+  previousPeriods: {
     startDate: string;
     totalMinutes: number;
     executionPercent: number;
@@ -52,18 +51,19 @@ export type ReviewContext = {
     projects: ProjectMinutes[];
   }[];
   projectsServingNoGoal: ProjectMinutes[];
-  sessionsThisWeek: {
+  sessions: {
+    date: string;
     weekday: string;
+    startTime: string;
     project: string;
     category: string;
     categoryKind: CategoryKind;
     minutes: number;
     outcome: string | null;
-    aiOverall: number | null;
   }[];
 };
 
-export const SESSION_LIMIT = 40;
+export const SESSION_LIMIT = 60;
 const OUTCOME_LIMIT = 200;
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -71,17 +71,17 @@ function minutes(seconds: number): number {
   return Math.round(seconds / 60);
 }
 
-export function buildReviewContext(input: {
-  /** Oldest first; the last entry is the current week. */
-  stats: WeekStats[];
-  daysCovered: number;
+export function buildReportContext(input: {
+  kind: PeriodKind;
+  /** Oldest first; the last entry is the period being reported on. */
+  stats: PeriodStats[];
   goals: Goal[];
   projects: Project[];
   categories: Category[];
-  /** This week's sessions, newest first. */
-  sessions: WeekSession[];
+  /** The period's sessions, newest first. */
+  sessions: PeriodSession[];
   timeZone: string;
-}): ReviewContext {
+}): ReportContext {
   const current = input.stats.at(-1)!;
   const activeGoals = input.goals.filter((g) => !g.archived);
   const activeGoalIds = new Set(activeGoals.map((g) => g.id));
@@ -100,9 +100,9 @@ export function buildReviewContext(input: {
   };
 
   return {
-    currentWeek: {
+    period: {
+      kind: input.kind,
       startDate: current.startKey,
-      daysCovered: input.daysCovered,
       totalMinutes: minutes(current.totalSeconds),
       executionMinutes: minutes(current.executionSeconds),
       preparationMinutes: minutes(
@@ -112,13 +112,13 @@ export function buildReviewContext(input: {
       sessionCount: current.sessionCount,
       activeDays: current.activeDays,
     },
-    previousWeeks: input.stats.slice(0, -1).map((week) => ({
-      startDate: week.startKey,
-      totalMinutes: minutes(week.totalSeconds),
-      executionPercent: percent(week.executionSeconds, week.totalSeconds),
-      goalPercent: percent(week.servingSeconds, week.totalSeconds),
-      sessionCount: week.sessionCount,
-      activeDays: week.activeDays,
+    previousPeriods: input.stats.slice(0, -1).map((period) => ({
+      startDate: period.startKey,
+      totalMinutes: minutes(period.totalSeconds),
+      executionPercent: percent(period.executionSeconds, period.totalSeconds),
+      goalPercent: percent(period.servingSeconds, period.totalSeconds),
+      sessionCount: period.sessionCount,
+      activeDays: period.activeDays,
     })),
     goals: activeGoals.map((goal) => ({
       title: goal.title,
@@ -130,20 +130,20 @@ export function buildReviewContext(input: {
     projectsServingNoGoal: activeProjects
       .filter((p) => p.goalId === null || !activeGoalIds.has(p.goalId))
       .map(projectMinutes),
-    sessionsThisWeek: input.sessions.slice(0, SESSION_LIMIT).map((session) => {
+    sessions: input.sessions.slice(0, SESSION_LIMIT).map((session) => {
       // A category with sessions cannot be removed.
       const category = categoryById.get(session.categoryId)!;
+      const startedAt = new Date(session.startedAt);
+      const date = localDayKey(startedAt, input.timeZone);
       return {
-        weekday:
-          WEEKDAYS[
-            isoWeekday(localDayKey(new Date(session.startedAt), input.timeZone)) - 1
-          ],
+        date,
+        weekday: WEEKDAYS[isoWeekday(date) - 1],
+        startTime: formatLocalTime(startedAt, input.timeZone),
         project: projectName.get(session.projectId) ?? "",
         category: category.name,
         categoryKind: category.kind,
         minutes: minutes(sessionSeconds(session)),
         outcome: session.outcome?.slice(0, OUTCOME_LIMIT) ?? null,
-        aiOverall: session.aiOverall,
       };
     }),
   };
