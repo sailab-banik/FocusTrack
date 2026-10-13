@@ -16,6 +16,7 @@ import {
   pausedSecondsAfterResume,
   runningSeconds,
 } from "./duration";
+import { DiscardSessionButton } from "./discard-session-button";
 import { StopSessionForm } from "./stop-session-form";
 import { TimerFace } from "./timer-face";
 
@@ -146,9 +147,9 @@ export function RunningTimer({
       )}
       <div className="flex items-end justify-between gap-4">
         <div className="flex min-w-0 flex-col gap-1">
-          <h1 className="truncate text-2xl font-semibold tracking-tight font-stretch-[108%]">
+          <h2 className="truncate text-2xl font-semibold tracking-tight font-stretch-[108%]">
             {projectName}
-          </h1>
+          </h2>
           <p className="flex items-center gap-2 text-muted-foreground">
             <KindMark kind={kind} />
             {categoryName}
@@ -179,6 +180,7 @@ export function RunningTimer({
         <StopSessionForm
           sessionId={sessionId}
           stoppedAt={stoppedAt}
+          elapsedSeconds={elapsed}
           onResume={() => {
             setNow(new Date());
             setStoppedAt(null);
@@ -228,6 +230,7 @@ export function RunningTimer({
               Stop session
             </Button>
           </div>
+          <DiscardSessionButton sessionId={sessionId} elapsedSeconds={elapsed} />
         </>
       )}
     </div>

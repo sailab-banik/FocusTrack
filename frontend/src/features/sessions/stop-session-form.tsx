@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { stopSession, type SessionFormState } from "./actions";
+import { DiscardSessionButton } from "./discard-session-button";
 import { RatingChips } from "./rating-chips";
 import { LOG_LIMITS } from "./session-log";
 
@@ -13,10 +14,12 @@ const initialState: SessionFormState = { status: "idle" };
 export function StopSessionForm({
   sessionId,
   stoppedAt,
+  elapsedSeconds,
   onResume,
 }: {
   sessionId: string;
   stoppedAt: Date;
+  elapsedSeconds: number;
   onResume: () => void;
 }) {
   const [state, formAction, pending] = useActionState(
@@ -108,6 +111,10 @@ export function StopSessionForm({
         >
           Keep going
         </Button>
+        <DiscardSessionButton
+          sessionId={sessionId}
+          elapsedSeconds={elapsedSeconds}
+        />
       </div>
     </form>
   );

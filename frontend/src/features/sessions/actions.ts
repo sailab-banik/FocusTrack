@@ -167,6 +167,22 @@ export async function resumeSession(id: string): Promise<void> {
   refresh();
 }
 
+// For a start made by mistake: deletes the session without logging it. Only
+// a running session can be discarded; a finished one is deleted from its
+// history page.
+export async function discardSession(id: string): Promise<void> {
+  await requireUser();
+  if (!isUuid(id)) throw new Error("Invalid session id");
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("sessions")
+    .delete()
+    .eq("id", id)
+    .is("ended_at", null);
+  if (error) throw error;
+  refresh();
+}
+
 const HISTORY_PATH = "/sessions";
 
 export async function createSession(
