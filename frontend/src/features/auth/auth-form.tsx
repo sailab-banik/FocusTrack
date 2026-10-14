@@ -91,7 +91,6 @@ export function AuthForm({ mode }: { mode: keyof typeof MODES }) {
             name="email"
             type="email"
             autoComplete="email"
-            placeholder="you@example.com"
             required
             className="h-11"
           />
