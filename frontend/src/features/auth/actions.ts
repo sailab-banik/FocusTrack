@@ -104,7 +104,8 @@ export async function updatePassword(
 
 export async function signOut(): Promise<void> {
   const supabase = await createClient();
-  await supabase.auth.signOut();
+  // Supabase defaults to "global", which ends the user's sessions on every device.
+  await supabase.auth.signOut({ scope: "local" });
   redirect(SIGN_IN_PATH);
 }
 
