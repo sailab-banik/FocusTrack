@@ -4,6 +4,7 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import { refresh } from "next/cache";
 import { requireUser } from "@/features/auth/current-user";
 import { createClient } from "@/lib/supabase/server";
+import { isUuid } from "@/lib/uuid";
 import { parseProjectGoal, parseProjectName } from "./project-input";
 
 export type ProjectFormState =
@@ -55,6 +56,28 @@ export async function updateProject(
     .eq("id", id);
   if (error?.code === FOREIGN_KEY_VIOLATION) return GOAL_GONE;
   return finish(error, name.name);
+}
+
+/** Links an existing project to a goal, moving it from any other goal. */
+export async function linkProject(
+  _state: ProjectFormState,
+  formData: FormData,
+): Promise<ProjectFormState> {
+  await requireUser();
+  const id = formData.get("id");
+  const goalId = formData.get("goalId");
+  if (!isUuid(id)) return { status: "error", message: "Choose a project." };
+  if (!isUuid(goalId)) return { status: "error", message: "Missing goal." };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("projects")
+    .update({ goal_id: goalId })
+    .eq("id", id);
+  if (error?.code === FOREIGN_KEY_VIOLATION) return GOAL_GONE;
+  if (error) throw error;
+  refresh();
+  return { status: "saved" };
 }
 
 const GOAL_GONE: ProjectFormState = {

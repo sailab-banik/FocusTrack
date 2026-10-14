@@ -15,12 +15,15 @@ export function ProjectGroup({
   projects,
   goalId,
   goals,
+  linkable,
   timeByProject,
   maxSeconds,
 }: {
   projects: Project[];
   goalId: string | null;
   goals: Goal[];
+  /** Active projects outside this group that could be linked to its goal. */
+  linkable: Project[];
   timeByProject: Map<string, KindSeconds>;
   maxSeconds: number;
 }) {
@@ -44,7 +47,7 @@ export function ProjectGroup({
           ))}
         </ul>
       )}
-      <NewProjectForm goalId={goalId} />
+      <NewProjectForm goalId={goalId} goals={goals} linkable={linkable} />
     </div>
   );
 }

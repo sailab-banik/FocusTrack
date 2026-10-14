@@ -90,6 +90,7 @@ export default async function WorkPage() {
               <ProjectGroup
                 projects={goalProjects}
                 goalId={goal.id}
+                linkable={activeProjects.filter((p) => p.goalId !== goal.id)}
                 {...groupProps}
               />
             </section>
@@ -111,7 +112,12 @@ export default async function WorkPage() {
               </p>
             )}
           </div>
-          <ProjectGroup projects={unlinked} goalId={null} {...groupProps} />
+          <ProjectGroup
+            projects={unlinked}
+            goalId={null}
+            linkable={[]}
+            {...groupProps}
+          />
         </section>
       )}
 
