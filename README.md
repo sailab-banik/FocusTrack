@@ -6,7 +6,7 @@ A personal work tracker that answers one question:
 
 It tracks work sessions and what each one produced. It is not a todo app, a habit tracker, or a journal.
 
-**[Open the app](https://focustrack-taupe.vercel.app)**
+**[Open the app](https://focustrack.sailab.dev/)**
 
 <p align="center">
   <img src="docs/screenshots/tour.gif" alt="Starting a Build session, then moving through History, Work, and the weekly AI report on Review" width="960">

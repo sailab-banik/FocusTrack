@@ -29,7 +29,7 @@ export function Credit() {
       </svg>
       <span>Brewed by</span>
       <a
-        href="https://sailab-banik-portfolio.vercel.app/"
+        href="https://portfolio.sailab.dev/"
         target="_blank"
         rel="noreferrer"
         className="font-medium text-foreground underline-offset-4 hover:underline focus-visible:underline focus-visible:outline-none"
