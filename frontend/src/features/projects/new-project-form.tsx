@@ -77,7 +77,7 @@ function ExistingProjectForm({
           defaultValue=""
           required
           aria-label="Existing project"
-          className="h-10 max-w-full min-w-48 flex-1 rounded-lg border border-input bg-card px-2.5 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
+          className="h-10 max-w-full min-w-48 flex-1 rounded-lg border border-input bg-card pr-9 pl-2.5 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
         >
           <option value="" disabled>
             Choose an existing project
