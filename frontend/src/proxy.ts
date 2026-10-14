@@ -62,6 +62,10 @@ function redirectKeepingCookies(
   return redirect;
 }
 
+// Browsers fetch the manifest and icons without cookies, so a redirect to the
+// sign-in page would break installing the app.
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|icon|apple-icon).*)",
+  ],
 };

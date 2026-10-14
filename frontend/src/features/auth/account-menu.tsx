@@ -8,6 +8,7 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { AddToHomeScreen } from "@/features/install/add-to-home-screen";
 import { signOut } from "./actions";
 
 /** The header's account button: who is signed in, and the way out. */
@@ -32,6 +33,7 @@ export function AccountMenu({ email }: { email: string }) {
             {email}
           </p>
         </PopoverHeader>
+        <AddToHomeScreen />
         <form action={signOut} className="border-t pt-1">
           <Button
             type="submit"

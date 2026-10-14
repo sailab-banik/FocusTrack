@@ -12,6 +12,7 @@ const archivo = Archivo({
 export const metadata: Metadata = {
   title: "FocusTrack",
   description: "Personal work intelligence and execution tracker",
+  appleWebApp: { capable: true, title: "FocusTrack" },
 };
 
 export const viewport: Viewport = {
