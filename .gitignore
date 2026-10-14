@@ -4,3 +4,4 @@ node_modules
 .cc-writes
 
 backend/node_modules
+.playwright-mcp/
