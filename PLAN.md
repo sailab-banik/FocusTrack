@@ -210,5 +210,5 @@ These are gaps in the requirements. Each has a proposed default that will be use
 | 7 | Can sessions be added manually after the fact? | Yes, via session history |
 | 8 | What does PWA mean for Phase 1? | Installable and responsive; no offline sync |
 | 9 | What scale do evaluation scores use? | No longer applies: per-session scores were removed with evaluation |
-| 10 | Which sign-in methods? | Email-based Supabase Auth |
+| 10 | Which sign-in methods? | Supabase Auth: email and password, with password reset by email, and Google |
 | 11 | Package manager and test runner? | Decided: pnpm and Vitest |

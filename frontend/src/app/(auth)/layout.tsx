@@ -1,19 +1,21 @@
 import { Brand } from "@/components/brand";
+import { WeekIllustration } from "@/features/auth/week-illustration";
 
 export default function AuthLayout({ children }: LayoutProps<"/">) {
   return (
-    <main className="flex flex-1 flex-col items-center justify-center px-4 py-10">
-      <div className="flex w-full max-w-sm flex-col gap-6">
-        <div className="flex flex-col gap-2 px-1">
-          <Brand />
-          <p className="text-sm text-muted-foreground">
-            Track work sessions and what each one produced.
-          </p>
+    <div className="grid flex-1 lg:grid-cols-2">
+      <main className="flex flex-col px-4 py-6 sm:px-10 sm:py-8">
+        <Brand />
+        <div className="flex flex-1 flex-col justify-center py-10">
+          <div className="mx-auto flex w-full max-w-sm flex-col gap-6">
+            {children}
+          </div>
         </div>
-        <div className="flex flex-col gap-5 rounded-3xl border bg-card p-6 sm:p-8">
-          {children}
-        </div>
-      </div>
-    </main>
+      </main>
+      {/* Phones go straight to the form. */}
+      <aside className="hidden items-center justify-center border-l bg-card px-12 py-12 lg:flex">
+        <WeekIllustration />
+      </aside>
+    </div>
   );
 }

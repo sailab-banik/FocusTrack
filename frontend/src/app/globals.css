@@ -52,6 +52,17 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+@theme {
+  /* Set --rise on the element to the distance it rises from. */
+  --animate-rise: rise 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+
+  @keyframes rise {
+    from {
+      transform: translateY(var(--rise));
+    }
+  }
+}
+
 /*
  * The interface is cool and quiet. The one warm color is reserved for
  * execution, so heat on screen always means output. Preparation is the cool

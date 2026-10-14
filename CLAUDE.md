@@ -43,7 +43,13 @@ Backend (`backend/`, local Supabase, needs Docker):
 
 Environment: copy `frontend/.env.example` to `frontend/.env.local` and fill in the Supabase URL and publishable key. Optional, server-only: `OPENAI_API_KEY` turns on AI reports, and `OPENAI_MODEL` overrides the default model (`gpt-6.1-sol`). Without a key the app works fully and reports are shown as off.
 
-Hosted Supabase auth setup (dashboard, not in code): set Site URL to the deployed app URL, and change the "Confirm signup" email template link to `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`. Local Supabase skips email confirmation.
+Hosted Supabase auth setup (dashboard, not in code):
+
+- URL Configuration: set Site URL to the deployed app URL, and add `<app URL>/auth/callback**` to Redirect URLs (and `http://localhost:3000/auth/callback**` to use the hosted project from local dev).
+- Email templates: change the "Confirm signup" link to `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`. "Reset password" keeps its default link.
+- Google sign-in: create an OAuth client (type "Web application") in Google Cloud, with the Supabase project's `https://<ref>.supabase.co/auth/v1/callback` as its authorized redirect URI, then enable the Google provider in Supabase with that client's ID and secret. The button stays hidden until then: set `GOOGLE_SIGN_IN` in `src/features/auth/auth-form.tsx` to `true` once the provider works.
+
+Local Supabase skips email confirmation and has Google off; `backend/supabase/config.toml` says how to turn it on.
 
 ## Architecture
 
@@ -54,7 +60,8 @@ frontend/                  Next.js app (UI, server actions, route handlers)
   src/components/ui/       shadcn/ui components (generated; style "base-nova", Base UI primitives)
   src/lib/supabase/        Supabase clients: client.ts (browser), server.ts (server components/actions)
   src/app/(app)/           Signed-in pages; the layout calls requireUser()
-  src/app/(auth)/          Sign-in and sign-up pages
+  src/app/(auth)/          Sign-in, sign-up, and password reset pages
+  src/app/auth/            Auth callbacks: email confirmation, and the return from Google and reset emails
   src/proxy.ts             Refreshes the Supabase session cookie; redirects signed-out users to /login
 backend/                   Database and auth
   supabase/config.toml     Local Supabase config
