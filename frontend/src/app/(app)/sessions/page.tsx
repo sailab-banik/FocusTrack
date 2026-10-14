@@ -21,7 +21,7 @@ export default async function HistoryPage() {
     ]);
 
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-8 sm:py-12">
+    <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-8 sm:py-12">
       <PageHeader
         title="History"
         action={

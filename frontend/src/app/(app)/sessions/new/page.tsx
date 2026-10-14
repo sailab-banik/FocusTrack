@@ -23,7 +23,7 @@ export default async function NewSessionPage() {
   const nowInput = toLocalDateTimeInput(now, timeZone);
 
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-8 sm:py-12">
+    <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-8 sm:py-12">
       <PageHeader
         title="Add session"
         description="For work you did but did not time."

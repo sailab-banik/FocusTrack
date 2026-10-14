@@ -57,7 +57,7 @@ export default async function WorkPage() {
   const groupProps = { goals, timeByProject: byProject, maxSeconds };
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-col gap-12 px-4 py-8 sm:py-12">
+    <main className="mx-auto flex w-full max-w-5xl flex-col gap-12 px-4 py-8 sm:py-12">
       <div className="flex flex-col gap-4">
         <PageHeader
           title="Work"
