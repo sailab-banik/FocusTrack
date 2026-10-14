@@ -6,10 +6,11 @@ const STEAM = [
 
 export function Credit() {
   return (
-    <footer className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+    <footer className="flex items-baseline justify-center gap-1.5 text-xs text-muted-foreground">
       <svg
-        viewBox="0 0 20 20"
-        className="size-5 overflow-visible"
+        // Starts the box at the cup's base so baseline alignment sits the cup on the text.
+        viewBox="0 -3 20 20"
+        className="size-5 overflow-visible text-execution"
         fill="none"
         stroke="currentColor"
         strokeWidth="1.4"
