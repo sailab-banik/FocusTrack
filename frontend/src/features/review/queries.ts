@@ -1,9 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
-import { CLAIM_TTL_MS } from "./claims";
 import type { PeriodSession } from "./context";
 import { NOTICE_TTL_MS, type RecentReport } from "./notices";
 import type { Period, PeriodKind } from "./periods";
 import type { Observation } from "./schema";
+import type { UnwrittenReport } from "./status";
 
 export type StoredReport = {
   periodStart: string;
@@ -41,17 +41,20 @@ export async function getLatestReport(
   };
 }
 
-/** The kinds with a report claimed and still being written. */
-export async function listKindsBeingWritten(now: Date): Promise<PeriodKind[]> {
+/** Every report that was claimed and has not been written. */
+export async function listUnwrittenReports(): Promise<UnwrittenReport[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("reports")
-    .select("period")
-    .is("written_at", null)
-    .gte("claimed_at", new Date(now.getTime() - CLAIM_TTL_MS).toISOString());
+    .select("period, period_start, claimed_at")
+    .is("written_at", null);
   if (error) throw error;
-  // The table only accepts the three period kinds.
-  return data.map((row) => row.period as PeriodKind);
+  return data.map((row) => ({
+    // The table only accepts the three period kinds.
+    kind: row.period as PeriodKind,
+    periodStart: row.period_start,
+    claimedAt: row.claimed_at,
+  }));
 }
 
 /**

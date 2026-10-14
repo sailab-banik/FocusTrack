@@ -2,35 +2,41 @@ import { dayLabel } from "@/features/sessions/history";
 import { formatLocalTime, localDayKey } from "@/features/timezone/zoned-time";
 import { periodLabel, type PeriodKind } from "./periods";
 import type { StoredReport } from "./queries";
+import type { ReportStatus } from "./status";
 
 const HOW_REPORTS_WORK =
   "Reports are written automatically, once for each day, week, and month with finished sessions, the next time you open the app. Each one sends that period's totals, your goal and project names, and session outcomes to the AI provider. Notes and descriptions stay here.";
 
-const WORDS: Record<PeriodKind, { adjective: string; noun: string; last: string }> =
-  {
-    day: { adjective: "daily", noun: "day", last: "yesterday" },
-    week: { adjective: "weekly", noun: "week", last: "last week" },
-    month: { adjective: "monthly", noun: "month", last: "last month" },
-  };
+const WORDS: Record<PeriodKind, { last: string; next: string }> = {
+  day: { last: "yesterday", next: "Today's sessions are reported tomorrow." },
+  week: {
+    last: "last week",
+    next: "This week's sessions are reported next week.",
+  },
+  month: {
+    last: "last month",
+    next: "This month's sessions are reported next month.",
+  },
+};
 
 export function ReportPanel({
   kind,
   report,
-  beingWritten,
+  status,
   aiConfigured,
   now,
   timeZone,
 }: {
   kind: PeriodKind;
   report: StoredReport | null;
-  beingWritten: boolean;
+  status: ReportStatus;
   aiConfigured: boolean;
   now: Date;
   timeZone: string;
 }) {
   const words = WORDS[kind];
 
-  if (!report && !beingWritten && !aiConfigured) {
+  if (!report && status !== "writing" && !aiConfigured) {
     return (
       <p className="max-w-prose text-muted-foreground">
         AI reports are off. Set{" "}
@@ -45,9 +51,21 @@ export function ReportPanel({
 
   return (
     <div className="flex flex-col gap-6">
-      {beingWritten && (
+      {status === "writing" && (
         <p role="status" className="text-muted-foreground">
           Writing the report for {words.last}…
+        </p>
+      )}
+      {status === "failed" && (
+        <p className="max-w-prose text-muted-foreground">
+          The report for {words.last} could not be written. It is tried again
+          the next time you open the app.
+        </p>
+      )}
+      {status === "none" && aiConfigured && (
+        <p className="max-w-prose text-muted-foreground">
+          No report for {words.last}: no finished session started then.{" "}
+          {words.next}
         </p>
       )}
       {report && (
@@ -57,12 +75,6 @@ export function ReportPanel({
           now={now}
           timeZone={timeZone}
         />
-      )}
-      {!report && !beingWritten && (
-        <p className="max-w-prose text-muted-foreground">
-          No {words.adjective} report yet. The first is written when you open
-          the app after a {words.noun} with finished sessions has ended.
-        </p>
       )}
       {aiConfigured && (
         <p className="max-w-prose text-xs text-muted-foreground">

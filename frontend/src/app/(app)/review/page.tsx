@@ -4,14 +4,19 @@ import { getAiProvider } from "@/features/ai/get-provider";
 import { GoalSplit } from "@/features/review/goal-split";
 import { goalTimes } from "@/features/review/goal-times";
 import { loadPeriodData } from "@/features/review/period-data";
-import { recentWeeks, type PeriodKind } from "@/features/review/periods";
+import {
+  closedPeriods,
+  recentWeeks,
+  type PeriodKind,
+} from "@/features/review/periods";
 import {
   getLatestReport,
-  listKindsBeingWritten,
+  listUnwrittenReports,
   type StoredReport,
 } from "@/features/review/queries";
 import { ReportPanel } from "@/features/review/report-panel";
 import { ReportTabs } from "@/features/review/report-tabs";
+import { reportStatus } from "@/features/review/status";
 import { WeekChart } from "@/features/review/week-chart";
 import { formatDuration } from "@/features/sessions/duration";
 import { getTimeZone } from "@/features/timezone/time-zone";
@@ -25,12 +30,12 @@ export default async function ReviewPage() {
   const now = new Date();
   const timeZone = await getTimeZone();
   const weeks = recentWeeks(now, timeZone, PREVIOUS_WEEKS);
-  const [data, day, week, month, beingWritten] = await Promise.all([
+  const [data, day, week, month, unwritten] = await Promise.all([
     loadPeriodData(weeks, timeZone),
     getLatestReport("day"),
     getLatestReport("week"),
     getLatestReport("month"),
-    listKindsBeingWritten(now),
+    listUnwrittenReports(),
   ]);
   const thisWeek = data.stats.at(-1)!;
   const thisWeekStart = weeks.at(-1)!.start;
@@ -39,7 +44,13 @@ export default async function ReviewPage() {
     <ReportPanel
       kind={kind}
       report={report}
-      beingWritten={beingWritten.includes(kind)}
+      status={reportStatus(
+        kind,
+        closedPeriods(kind, now, timeZone, 1)[0].startKey,
+        report && report.periodStart,
+        unwritten,
+        now,
+      )}
       aiConfigured={aiConfigured}
       now={now}
       timeZone={timeZone}
