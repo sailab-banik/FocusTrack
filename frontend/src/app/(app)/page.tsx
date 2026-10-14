@@ -2,6 +2,8 @@ import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { listCategories, type Category } from "@/features/categories/queries";
+import { isGuideDismissed } from "@/features/guide/dismissal";
+import { FirstRunGuide } from "@/features/guide/first-run-guide";
 import { getRevisitNudges } from "@/features/nudges/queries";
 import { RevisitNudges } from "@/features/nudges/revisit-nudges";
 import { listProjects, type Project } from "@/features/projects/queries";
@@ -24,16 +26,25 @@ export default async function TimerPage({ searchParams }: PageProps<"/">) {
   const now = new Date();
   const timeZone = await getTimeZone();
   const projectsPromise = listProjects();
-  const [running, projects, categories, lastUsed, nudges, today, params] =
-    await Promise.all([
-      getRunningSession(),
-      projectsPromise,
-      listCategories(),
-      getLastUsed(),
-      getRevisitNudges(projectsPromise, now, timeZone),
-      listSessionSpans(startOfLocalDay(now, timeZone)),
-      searchParams,
-    ]);
+  const [
+    running,
+    projects,
+    categories,
+    lastUsed,
+    nudges,
+    today,
+    params,
+    guideDismissed,
+  ] = await Promise.all([
+    getRunningSession(),
+    projectsPromise,
+    listCategories(),
+    getLastUsed(),
+    getRevisitNudges(projectsPromise, now, timeZone),
+    listSessionSpans(startOfLocalDay(now, timeZone)),
+    searchParams,
+    isGuideDismissed(),
+  ]);
   const activeProjects = projects.filter((p) => !p.archived);
 
   return (
@@ -63,6 +74,10 @@ export default async function TimerPage({ searchParams }: PageProps<"/">) {
           </TimerScreen>
         </div>
         <aside className="flex flex-col gap-10 lg:sticky lg:top-22">
+          {/* No last-used session means none has ever been started. */}
+          {!lastUsed && !guideDismissed && (
+            <FirstRunGuide hasProject={activeProjects.length > 0} />
+          )}
           <TodayPanel
             spans={today}
             categories={categories}
