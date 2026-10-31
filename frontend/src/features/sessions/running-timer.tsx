@@ -178,6 +178,7 @@ export function RunningTimer({
         <StopDialog
           sessionId={sessionId}
           stoppedAt={stoppedAt}
+          elapsedSeconds={elapsed}
           label={`${projectName} · ${categoryName} · ${formatDuration(elapsed)}`}
           kind={kind}
           onKeepGoing={() => {

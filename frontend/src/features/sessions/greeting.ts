@@ -22,12 +22,7 @@ export function sunPosition(minutesIntoDay: number): { x: number; y: number } {
 }
 
 export function greeting(minutesIntoDay: number, firstName: string): string {
-  const part =
-    minutesIntoDay < NOON
-      ? "morning"
-      : minutesIntoDay < FIVE_PM
-        ? "afternoon"
-        : "evening";
+  const part = skyPhase(minutesIntoDay);
   return firstName ? `Good ${part}, ${firstName}.` : `Good ${part}.`;
 }
 

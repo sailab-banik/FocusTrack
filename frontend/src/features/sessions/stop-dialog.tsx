@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import type { CategoryKind } from "@/features/categories/category-input";
 import { KindMark } from "@/features/categories/kind-mark";
 import { stopSession, type SessionFormState } from "./actions";
+import { DiscardSessionButton } from "./discard-session-button";
 import { MAX_COMMENT_LENGTH } from "./session-log";
 
 const initialState: SessionFormState = { status: "idle" };
@@ -16,6 +17,7 @@ const initialState: SessionFormState = { status: "idle" };
 export function StopDialog({
   sessionId,
   stoppedAt,
+  elapsedSeconds,
   label,
   kind,
   onKeepGoing,
@@ -23,6 +25,7 @@ export function StopDialog({
 }: {
   sessionId: string;
   stoppedAt: Date;
+  elapsedSeconds: number;
   /** e.g. "FocusTrack · Build · 47m" */
   label: string;
   kind: CategoryKind;
@@ -95,20 +98,27 @@ export function StopDialog({
             {state.message}
           </p>
         )}
-        <div className="mt-1 flex justify-end gap-2 md:gap-2.5">
+        <div className="mt-1 flex flex-wrap items-center justify-end gap-2 md:gap-2.5">
+          {/* For a session started by accident. Sits apart from Save. */}
+          <div className="mr-auto max-w-full">
+            <DiscardSessionButton
+              sessionId={sessionId}
+              elapsedSeconds={elapsedSeconds}
+            />
+          </div>
           <Button
             type="button"
             variant="outline"
             disabled={pending}
             onClick={onKeepGoing}
-            className="h-14 flex-1 rounded-2xl border-line-strong text-[15px] font-medium md:h-12 md:flex-none md:rounded-[14px] md:px-[18px]"
+            className="h-14 rounded-2xl border-line-strong px-3.5 text-[15px] font-medium md:h-12 md:rounded-[14px] md:px-[18px]"
           >
             Keep going
           </Button>
           <Button
             type="submit"
             disabled={pending || comment.trim() === ""}
-            className="h-14 flex-[1.3] rounded-2xl text-base font-semibold disabled:bg-line disabled:text-ink-muted disabled:opacity-100 md:h-12 md:flex-none md:rounded-[14px] md:px-[22px] md:text-[15px]"
+            className="h-14 rounded-2xl px-4 text-base font-semibold disabled:bg-line disabled:text-ink-muted disabled:opacity-100 md:h-12 md:flex-none md:rounded-[14px] md:px-[22px] md:text-[15px]"
           >
             {pending ? "Saving…" : "Save session"}
           </Button>

@@ -33,6 +33,12 @@ describe("greeting", () => {
     expect(greeting(1020, "")).toBe("Good evening.");
   });
 
+  it("does not call the small hours morning", () => {
+    expect(greeting(0, "")).toBe("Good evening.");
+    expect(greeting(299, "")).toBe("Good evening.");
+    expect(greeting(300, "")).toBe("Good morning.");
+  });
+
   it("uses the name when there is one", () => {
     expect(greeting(600, "Sam")).toBe("Good morning, Sam.");
   });
