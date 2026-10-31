@@ -6,7 +6,6 @@ import {
   SETUP_READY_PATH,
 } from "@/features/auth/routes";
 import { requireUser } from "@/features/auth/current-user";
-import type { CategoryKind } from "@/features/categories/category-input";
 import {
   startSession,
   type SessionFormState,
@@ -27,12 +26,9 @@ export async function completeSetup(
   await requireUser();
   const parsed = parseSetupInput(formData);
   if (!parsed.ok) return { status: "error", message: parsed.error };
-  const { projectName, why, executionIds, preparationIds } = parsed.input;
+  const { projectName, why } = parsed.input;
 
   const supabase = await createClient();
-  await setKind(executionIds, "execution");
-  await setKind(preparationIds, "preparation");
-
   const { error: projectError } = await supabase
     .from("projects")
     .insert({ name: projectName, why });
@@ -45,16 +41,6 @@ export async function completeSetup(
   if (projectError) throw projectError;
 
   redirect(SETUP_READY_PATH);
-}
-
-async function setKind(ids: string[], kind: CategoryKind): Promise<void> {
-  if (ids.length === 0) return;
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("categories")
-    .update({ kind })
-    .in("id", ids);
-  if (error) throw error;
 }
 
 export async function startFirstSession(

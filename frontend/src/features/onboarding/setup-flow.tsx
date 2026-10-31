@@ -26,7 +26,7 @@ const initialState: SetupFormState = { status: "idle" };
 
 const HEADING = "font-serif text-[30px] leading-9 lg:text-[44px] lg:leading-[50px]";
 
-/** Two steps, saved together at the end so a half-done setup leaves nothing. */
+/** Two steps, saved at the end so a half-done setup leaves nothing. */
 export function SetupFlow({ categories }: { categories: Category[] }) {
   const [state, formAction, pending] = useActionState(
     completeSetup,
@@ -36,20 +36,7 @@ export function SetupFlow({ categories }: { categories: Category[] }) {
   const [name, setName] = useState("");
   const [why, setWhy] = useState("");
   const [whyOpen, setWhyOpen] = useState(false);
-  const [kinds, setKinds] = useState(
-    () =>
-      new Map<string, CategoryKind>(categories.map((c) => [c.id, c.kind])),
-  );
   const projectName = name.trim();
-
-  function toggleKind(id: string) {
-    setKinds((current) =>
-      new Map(current).set(
-        id,
-        current.get(id) === "execution" ? "preparation" : "execution",
-      ),
-    );
-  }
 
   return (
     <form
@@ -64,14 +51,6 @@ export function SetupFlow({ categories }: { categories: Category[] }) {
     >
       <input type="hidden" name="name" value={projectName} />
       <input type="hidden" name="why" value={why} />
-      {categories.map((category) => (
-        <input
-          key={category.id}
-          type="hidden"
-          name={kinds.get(category.id)}
-          value={category.id}
-        />
-      ))}
 
       <StepProgress
         label="Setup progress"
@@ -158,21 +137,15 @@ export function SetupFlow({ categories }: { categories: Category[] }) {
         <div key="categories" className="ft-in flex flex-col gap-3">
           <h1 className={HEADING}>What counts as making things?</h1>
           <p className="mb-1 text-[15px] leading-[22px] text-ink-soft lg:text-lg">
-            We sorted the common ones. Tap any to move it.
+            We sorted the common ones. You can change them anytime in Settings.
           </p>
           <KindGroup
             kind="execution"
-            categories={categories.filter(
-              (c) => kinds.get(c.id) === "execution",
-            )}
-            onToggle={toggleKind}
+            categories={categories.filter((c) => c.kind === "execution")}
           />
           <KindGroup
             kind="preparation"
-            categories={categories.filter(
-              (c) => kinds.get(c.id) === "preparation",
-            )}
-            onToggle={toggleKind}
+            categories={categories.filter((c) => c.kind === "preparation")}
           />
         </div>
       )}
@@ -220,25 +193,21 @@ const GROUPS = {
     fill: "bg-tangerine-soft",
     text: "text-tangerine-text",
     mark: "rounded-[2px] bg-tangerine",
-    moveTo: "preparation",
   },
   preparation: {
     label: "Preparation",
     fill: "bg-periwinkle-soft",
     text: "text-periwinkle-text",
     mark: "rounded-full bg-periwinkle",
-    moveTo: "execution",
   },
 };
 
 function KindGroup({
   kind,
   categories,
-  onToggle,
 }: {
   kind: CategoryKind;
   categories: Category[];
-  onToggle: (id: string) => void;
 }) {
   const group = GROUPS[kind];
   return (
@@ -254,15 +223,12 @@ function KindGroup({
       </span>
       <div className="flex min-h-11 flex-wrap gap-2">
         {categories.map((category) => (
-          <button
+          <span
             key={category.id}
-            type="button"
-            onClick={() => onToggle(category.id)}
-            aria-label={`${category.name}, ${kind}. Tap to move to ${group.moveTo}`}
-            className="ft-pop h-11 cursor-pointer rounded-full bg-paper px-3.5 text-sm font-semibold shadow-[0_2px_6px_rgb(31_27_61/.1)]"
+            className="ft-pop inline-flex h-10 items-center rounded-full bg-paper px-3.5 text-sm font-semibold shadow-[0_2px_6px_rgb(31_27_61/.1)]"
           >
             {category.name}
-          </button>
+          </span>
         ))}
       </div>
     </div>

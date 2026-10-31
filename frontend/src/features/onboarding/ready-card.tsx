@@ -1,9 +1,11 @@
 "use client";
 
 import { Play } from "lucide-react";
+import Link from "next/link";
 import { useActionState } from "react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
+import { HOME_PATH } from "@/features/auth/routes";
 import type { Category } from "@/features/categories/queries";
 import type { Project } from "@/features/projects/queries";
 import type { SessionFormState } from "@/features/sessions/actions";
@@ -80,6 +82,12 @@ export function ReadyCard({
         <Play className="size-3.5 fill-current" />
         {pending ? "Starting…" : "Start your first session"}
       </Button>
+      <Link
+        href={HOME_PATH}
+        className="-mt-1 flex h-11 items-center justify-center text-sm font-semibold text-ink-soft"
+      >
+        Skip for now
+      </Link>
     </form>
   );
 }
