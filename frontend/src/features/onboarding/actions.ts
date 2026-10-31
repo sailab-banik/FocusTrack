@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   HOME_PATH,
@@ -12,6 +13,7 @@ import {
 } from "@/features/sessions/actions";
 import { createClient } from "@/lib/supabase/server";
 import { parseSetupInput } from "./setup-input";
+import { SETUP_SKIPPED_COOKIE } from "./setup-skip";
 
 export type SetupFormState =
   | { status: "idle" }
@@ -41,6 +43,20 @@ export async function completeSetup(
   if (projectError) throw projectError;
 
   redirect(SETUP_READY_PATH);
+}
+
+const ONE_YEAR_SECONDS = 365 * 24 * 60 * 60;
+
+// A cookie, like other per-device choices: at worst another device asks again.
+export async function skipSetup(): Promise<void> {
+  await requireUser();
+  (await cookies()).set(SETUP_SKIPPED_COOKIE, "1", {
+    path: "/",
+    maxAge: ONE_YEAR_SECONDS,
+    sameSite: "lax",
+    httpOnly: true,
+  });
+  redirect(HOME_PATH);
 }
 
 export async function startFirstSession(

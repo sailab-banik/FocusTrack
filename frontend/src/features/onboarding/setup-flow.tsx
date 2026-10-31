@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronLeft } from "lucide-react";
-import { useActionState, useState } from "react";
+import { useActionState, useState, useTransition } from "react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import {
   MAX_PROJECT_NAME_LENGTH,
   MAX_PROJECT_WHY_LENGTH,
 } from "@/features/projects/project-input";
-import { completeSetup, type SetupFormState } from "./actions";
+import { completeSetup, skipSetup, type SetupFormState } from "./actions";
 import { StepProgress } from "./step-progress";
 
 const IDEAS = [
@@ -32,6 +32,7 @@ export function SetupFlow({ categories }: { categories: Category[] }) {
     completeSetup,
     initialState,
   );
+  const [skipping, startSkip] = useTransition();
   const [step, setStep] = useState<"project" | "categories">("project");
   const [name, setName] = useState("");
   const [why, setWhy] = useState("");
@@ -183,6 +184,16 @@ export function SetupFlow({ categories }: { categories: Category[] }) {
           </span>
         </Button>
       </div>
+      {step === "project" && (
+        <button
+          type="button"
+          disabled={skipping}
+          onClick={() => startSkip(() => skipSetup())}
+          className="flex h-11 cursor-pointer items-center justify-center text-sm font-semibold text-ink-soft disabled:opacity-60"
+        >
+          {skipping ? "Skipping…" : "Skip for now"}
+        </button>
+      )}
     </form>
   );
 }

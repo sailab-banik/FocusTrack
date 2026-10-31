@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -5,6 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { requireUser } from "@/features/auth/current-user";
 import { SETUP_PATH } from "@/features/auth/routes";
 import { listCategories, type Category } from "@/features/categories/queries";
+import { SETUP_SKIPPED_COOKIE } from "@/features/onboarding/setup-skip";
 import { getRevisitNudges } from "@/features/nudges/queries";
 import { RevisitNudges } from "@/features/nudges/revisit-nudges";
 import { listProjects, type Project } from "@/features/projects/queries";
@@ -34,7 +36,7 @@ export default async function TodayPage({ searchParams }: PageProps<"/">) {
   const now = new Date();
   const [timeZone, user] = await Promise.all([getTimeZone(), requireUser()]);
   const projectsPromise = listProjects();
-  const [running, projects, categories, lastUsed, nudges, today, params] =
+  const [running, projects, categories, lastUsed, nudges, today, params, store] =
     await Promise.all([
       getRunningSession(),
       projectsPromise,
@@ -43,9 +45,12 @@ export default async function TodayPage({ searchParams }: PageProps<"/">) {
       getRevisitNudges(projectsPromise, now, timeZone),
       listSessionSpans(startOfLocalDay(now, timeZone)),
       searchParams,
+      cookies(),
     ]);
-  // Every new account lands here first; nothing can be timed without a project.
-  if (projects.length === 0) redirect(SETUP_PATH);
+  // Every new account lands in setup first, unless they chose to skip it.
+  if (projects.length === 0 && !store.has(SETUP_SKIPPED_COOKIE)) {
+    redirect(SETUP_PATH);
+  }
   const activeProjects = projects.filter((p) => !p.archived);
   const minutes = minutesIntoDay(now, timeZone);
   const brightSky = skyPhase(minutes) === "morning";
