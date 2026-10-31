@@ -2,7 +2,7 @@
 
 import { ArrowRight, ChevronLeft } from "lucide-react";
 import Link from "next/link";
-import { SIGN_IN_PATH, SIGN_UP_PATH } from "@/features/auth/routes";
+import { PRIVACY_PATH, SIGN_IN_PATH, SIGN_UP_PATH } from "@/features/auth/routes";
 import { useTour } from "./sunrise-shell";
 import { StepProgress } from "./step-progress";
 import { TOUR_PAGES } from "./tour-pages";
@@ -56,6 +56,13 @@ function Cover() {
               I already have an account
             </Link>
           </div>
+          <Link
+            href={PRIVACY_PATH}
+            className="ft-in flex h-11 w-fit items-center self-center text-[13px] font-medium text-ink-soft underline-offset-4 hover:underline lg:self-start lg:text-[#f3eeff]"
+            style={{ animationDelay: "1300ms" }}
+          >
+            Privacy
+          </Link>
         </div>
       </main>
     </>

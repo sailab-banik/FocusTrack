@@ -5,7 +5,7 @@ import { isAdminEmail } from "@/features/admin/access";
 import { getAiProvider } from "@/features/ai/get-provider";
 import { signOut } from "@/features/auth/actions";
 import { requireUser } from "@/features/auth/current-user";
-import { RESET_PASSWORD_PATH } from "@/features/auth/routes";
+import { PRIVACY_PATH, RESET_PASSWORD_PATH } from "@/features/auth/routes";
 import { CategoryBoard } from "@/features/categories/category-board";
 import {
   countSessionsByCategory,
@@ -131,7 +131,11 @@ export default async function SettingsPage() {
               />
             </div>
             <p className="text-[13px] text-ink-muted">
-              Everything else in FocusTrack works the same with AI off.
+              Everything else in FocusTrack works the same with AI off.{" "}
+              <Link href={PRIVACY_PATH} className="font-semibold text-indigo">
+                Read the privacy page
+              </Link>
+              .
             </p>
           </section>
 

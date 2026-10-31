@@ -7,6 +7,7 @@ export const FORGOT_PASSWORD_PATH = "/forgot-password";
 export const RESET_PASSWORD_PATH = "/reset-password";
 export const CALLBACK_PATH = "/auth/callback";
 export const HOME_PATH = "/";
+export const PRIVACY_PATH = "/privacy";
 
 // Pages for signed-out visitors; a signed-in one is sent home.
 const AUTH_PAGES = new Set([
@@ -21,5 +22,9 @@ export function isAuthPage(pathname: string): boolean {
 }
 
 export function isPublicPath(pathname: string): boolean {
-  return isAuthPage(pathname) || pathname.startsWith("/auth/");
+  return (
+    isAuthPage(pathname) ||
+    pathname === PRIVACY_PATH ||
+    pathname.startsWith("/auth/")
+  );
 }

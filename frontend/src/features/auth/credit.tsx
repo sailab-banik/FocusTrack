@@ -1,3 +1,6 @@
+import Link from "next/link";
+import { PRIVACY_PATH } from "./routes";
+
 const STEAM = [
   { d: "M7 7c-1-1.5 1-2.5 0-4", delay: "0ms" },
   { d: "M10 7c-1-1.5 1-2.5 0-4", delay: "500ms" },
@@ -37,6 +40,13 @@ export function Credit() {
       >
         Sailab Banik
       </a>
+      <span aria-hidden>·</span>
+      <Link
+        href={PRIVACY_PATH}
+        className="font-medium text-foreground underline-offset-4 hover:underline focus-visible:underline focus-visible:outline-none"
+      >
+        Privacy
+      </Link>
     </footer>
   );
 }

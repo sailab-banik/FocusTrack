@@ -4,6 +4,7 @@ import { isAuthPage, isPublicPath } from "./routes";
 describe("isPublicPath", () => {
   it("allows the auth pages and auth callbacks", () => {
     expect(isPublicPath("/welcome")).toBe(true);
+    expect(isPublicPath("/privacy")).toBe(true);
     expect(isPublicPath("/login")).toBe(true);
     expect(isPublicPath("/signup")).toBe(true);
     expect(isPublicPath("/forgot-password")).toBe(true);
@@ -29,6 +30,7 @@ describe("isAuthPage", () => {
     expect(isAuthPage("/signup")).toBe(true);
     expect(isAuthPage("/forgot-password")).toBe(true);
     expect(isAuthPage("/reset-password")).toBe(false);
+    expect(isAuthPage("/privacy")).toBe(false);
     expect(isAuthPage("/auth/confirm")).toBe(false);
   });
 });
