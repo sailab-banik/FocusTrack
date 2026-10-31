@@ -150,7 +150,7 @@ export default async function SettingsPage() {
                   Decides where your days and weeks begin.
                 </span>
               </span>
-              <span className="text-right text-sm font-semibold text-ink-soft">
+              <span className="text-sm font-semibold text-ink-soft sm:text-right">
                 {timeZone.replaceAll("_", " ")}
                 <span className="block text-xs font-medium text-ink-muted">
                   Automatic, from this browser
