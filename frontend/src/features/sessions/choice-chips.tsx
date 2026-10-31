@@ -30,7 +30,7 @@ export function ChoiceChips({
             className={cn(
               "group/chip flex h-10 min-w-10 cursor-pointer items-center justify-center gap-2 rounded-full border border-input bg-card px-4 text-sm transition-colors select-none hover:bg-muted has-focus-visible:ring-3 has-focus-visible:ring-ring/50",
               option.kind
-                ? "has-checked:border-kind has-checked:bg-kind has-checked:text-on-kind"
+                ? "has-checked:border-kind has-checked:bg-kind-soft has-checked:text-kind-text"
                 : "has-checked:border-primary has-checked:bg-primary has-checked:text-primary-foreground",
             )}
           >
@@ -45,7 +45,7 @@ export function ChoiceChips({
             {option.kind && (
               <KindMark
                 kind={option.kind}
-                className="group-has-checked/chip:bg-on-kind"
+                className="size-2"
               />
             )}
             {option.name}

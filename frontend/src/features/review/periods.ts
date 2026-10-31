@@ -44,6 +44,28 @@ function shift(kind: PeriodKind, startKey: string, count: number): string {
   return date.toISOString().slice(0, 10);
 }
 
+/** The period that starts on `startKey`. */
+export function periodFrom(
+  kind: PeriodKind,
+  startKey: string,
+  timeZone: string,
+): Period {
+  return toPeriod(kind, startKey, timeZone);
+}
+
+/** The period containing now: today, this week, or this month. */
+export function currentPeriod(
+  kind: PeriodKind,
+  now: Date,
+  timeZone: string,
+): Period {
+  return toPeriod(kind, startKeyOf(kind, localDayKey(now, timeZone)), timeZone);
+}
+
+export function nextPeriodStartKey(kind: PeriodKind, startKey: string): string {
+  return shift(kind, startKey, 1);
+}
+
 function toPeriod(kind: PeriodKind, startKey: string, timeZone: string): Period {
   return {
     startKey,
@@ -74,10 +96,9 @@ export function recentWeeks(
   timeZone: string,
   previous: number,
 ): Period[] {
-  const current = startKeyOf("week", localDayKey(now, timeZone));
   return [
     ...closedPeriods("week", now, timeZone, previous),
-    toPeriod("week", current, timeZone),
+    currentPeriod("week", now, timeZone),
   ];
 }
 
@@ -119,7 +140,7 @@ export type PeriodStats = {
 /** Totals per period, matching sessions to the period they started in. */
 export function periodStats(
   periods: Period[],
-  spans: Omit<SessionSpan, "id">[],
+  spans: Omit<SessionSpan, "id" | "outcome">[],
   kindOf: Map<string, CategoryKind>,
   servingProjectIds: Set<string>,
   timeZone: string,

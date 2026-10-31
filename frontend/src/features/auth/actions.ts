@@ -50,6 +50,23 @@ export async function signUp(
   redirect(HOME_PATH);
 }
 
+export async function resendConfirmation(
+  _state: AuthFormState,
+  formData: FormData,
+): Promise<AuthFormState> {
+  const email = parseEmail(formData);
+  if (!email.ok) return { status: "error", message: email.error };
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email: email.value,
+  });
+  if (error) return { status: "error", message: authErrorMessage(error) };
+
+  return { status: "check-email", email: email.value };
+}
+
 /**
  * Sends the browser to Google. It comes back to the callback route, which
  * signs the user in. Supabase links a Google sign-in to an existing account

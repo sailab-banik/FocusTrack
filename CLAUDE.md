@@ -11,7 +11,7 @@ It is **not** a generic todo app, habit tracker, life tracker, or journal.
 
 ## Status
 
-Phase 1 (milestones 0–8) is complete: auth, categories, projects, timer, session logging, history, and goals. Since then: pause/resume, in-app nudges (PLAN.md section 5), and the Review page with automatic daily, weekly, and monthly AI reports (Phase 2, item 1), which replaced per-session AI evaluation. Goals, projects, and categories live on one Work page; the nav is Timer, History, Work, Review. Next is AI todos.
+Phase 1 (milestones 0–8) is complete: auth, categories, projects, timer, session logging, history, and goals. Since then: pause/resume, in-app nudges (PLAN.md section 5), and the Review page with automatic daily, weekly, and monthly AI reports (Phase 2, item 1), which replaced per-session AI evaluation. The Daylight redesign (docs/DESIGN.md) is in progress and unreleased: the nav is Today, Log, Projects, Insights, plus Settings. All screens, including Admin, are built.
 
 ## Commands
 
@@ -41,13 +41,13 @@ Backend (`backend/`, local Supabase, needs Docker):
 | `pnpm test` | Run pgTAP database tests in `supabase/tests/` (RLS checks) |
 | `pnpm types` | Regenerate `frontend/src/lib/supabase/database.types.ts` from the local database |
 
-Environment: copy `frontend/.env.example` to `frontend/.env.local` and fill in the Supabase URL and publishable key. Optional, server-only: `OPENAI_API_KEY` turns on AI reports, and `OPENAI_MODEL` overrides the default model (`gpt-6.1-sol`). Without a key the app works fully and reports are shown as off.
+Environment: copy `frontend/.env.example` to `frontend/.env.local` and fill in the Supabase URL and publishable key. Optional, server-only: `OPENAI_API_KEY` turns on AI reports, and `OPENAI_MODEL` overrides the default model (`gpt-6.1-sol`). Without a key the app works fully and reports are shown as off. For the admin overview, also server-only: `ADMIN_EMAILS` (comma-separated) and `SUPABASE_SECRET_KEY`. Without both, `/admin` does not exist for anyone.
 
 Hosted Supabase auth setup (dashboard, not in code):
 
 - URL Configuration: set Site URL to the deployed app URL, and add `<app URL>/auth/callback**` to Redirect URLs (and `http://localhost:3000/auth/callback**` to use the hosted project from local dev).
 - Email templates: change the "Confirm signup" link to `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`. "Reset password" keeps its default link.
-- Google sign-in: create an OAuth client (type "Web application") in Google Cloud, with the Supabase project's `https://<ref>.supabase.co/auth/v1/callback` as its authorized redirect URI, then enable the Google provider in Supabase with that client's ID and secret. The button stays hidden until then: set `GOOGLE_SIGN_IN` in `src/features/auth/auth-form.tsx` to `true` once the provider works.
+- Google sign-in: create an OAuth client (type "Web application") in Google Cloud, with the Supabase project's `https://<ref>.supabase.co/auth/v1/callback` as its authorized redirect URI, then enable the Google provider in Supabase with that client's ID and secret. The button is always shown, so it fails on click until this is done.
 
 Local Supabase skips email confirmation and has Google off; `backend/supabase/config.toml` says how to turn it on.
 
@@ -73,6 +73,7 @@ backend/                   Database and auth
 - Next.js 16: request interception is `src/proxy.ts`, not `middleware.ts`. Current docs ship in `frontend/node_modules/next/dist/docs/`.
 - Tests sit next to the code they cover as `*.test.ts`.
 - AI: features call the `AiProvider` interface (`src/features/ai/provider.ts`), never a vendor API; `getAiProvider()` returns null when unconfigured. Reports are never requested by the user: `DueReports` in the app layout calls `requestDueReports` when the app is opened, which claims a row in `reports` per due period and writes it via `after()`. One row per user and period is the cap on provider calls, so keep every AI call behind a claim like it. Bump `PROMPT_VERSION` in `src/features/review/prompt.ts` whenever the prompt or schema changes.
+- Admin: `src/lib/supabase/admin.ts` bypasses RLS, so only `src/features/admin/` may import it, always behind `requireAdmin()`, and its queries select usage columns only. Never session comments or project names.
 - Times: the server renders in UTC, so anything showing wall-clock times or day boundaries uses the user's timezone from `getTimeZone()` (a `tz` cookie mirrored from the browser by `TimeZoneSync`) and the helpers in `src/features/timezone/zoned-time.ts`.
 
 ## Stack
@@ -184,9 +185,10 @@ Comments:
 - The timer is one of the most prominent interactions.
 - Mobile: fast session start/stop, quick category/project selection, minimal typing.
 - Desktop: rich analytics, timeline, project view, AI insights, goal progress.
-- Color: tokens live in `src/app/globals.css`. The interface is cool and neutral; the warm `execution` color is reserved for execution work and `preparation` is its cool counterpart. Never use either as decoration. Set `data-kind` on an element and use `bg-kind` / `text-on-kind`, and pair color with `KindMark` so kind never depends on color alone.
+- Color: tokens live in `src/app/globals.css`. The interface is cool and neutral; the warm `execution` color is reserved for execution work and `preparation` is its cool counterpart. Never use either as decoration, except the active nav icons and Settings section dots, which the design specifies. Set `data-kind` on an element and use `bg-kind` / `text-on-kind`, and pair color with `KindMark` so kind never depends on color alone.
 - Theme follows the system (`prefers-color-scheme`); there is no toggle. Check new UI in both.
 - Type: Archivo only. The condensed width is for the timer clock; do not add a second family or a monospace for numbers (use `tabular-nums`).
+- [docs/DESIGN.md](docs/DESIGN.md) ("Daylight") overrides the older color, type, and theme rules above: tokens are in `globals.css`, motion and the onboarding sky in `src/app/daylight.css`, type is Young Serif and Onest, and the app is light-only for now. It ships as one complete release: nothing goes to production until every screen is done.
 
 ## Definition of done
 

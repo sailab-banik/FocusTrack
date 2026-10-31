@@ -22,7 +22,7 @@ export type BellNotice = {
   unread: boolean;
 };
 
-const REVIEW_PATH = "/review";
+const REVIEW_PATH = "/insights";
 
 export function ReportBell({ notices }: { notices: BellNotice[] }) {
   const pathname = usePathname();

@@ -15,7 +15,6 @@ const valid = {
   categoryId: "bbbbbbbb-0000-4000-8000-000000000001",
   startedAt: "2026-10-09T09:00",
   endedAt: "2026-10-09T10:30",
-  description: "Wrote the history page",
   outcome: "History lists sessions by day",
 };
 
@@ -27,7 +26,7 @@ describe("parseSessionInput", () => {
       input: {
         projectId: valid.projectId,
         categoryId: valid.categoryId,
-        description: valid.description,
+        outcome: valid.outcome,
         startedAt: new Date("2026-10-09T03:30:00Z"),
         endedAt: new Date("2026-10-09T05:00:00Z"),
       },

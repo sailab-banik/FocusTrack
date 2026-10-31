@@ -1,6 +1,5 @@
 import type { CategoryKind } from "@/features/categories/category-input";
 import type { Category } from "@/features/categories/queries";
-import type { Goal } from "@/features/goals/queries";
 import type { Project } from "@/features/projects/queries";
 import { sessionSeconds } from "@/features/sessions/duration";
 import { formatLocalTime, localDayKey } from "@/features/timezone/zoned-time";
@@ -18,13 +17,15 @@ export type PeriodSession = {
 
 type ProjectMinutes = {
   name: string;
+  /** The goal behind the project; null when it has none. */
+  why: string | null;
   executionMinutes: number;
   preparationMinutes: number;
 };
 
 /**
- * What the model sees. Deliberately minimal: aggregates, goal and project
- * names, and the period's outcomes. No notes, descriptions, or account details.
+ * What the model sees. Deliberately minimal: aggregates, project names and
+ * why each matters, and the period's session comments. No account details.
  */
 export type ReportContext = {
   period: {
@@ -45,12 +46,7 @@ export type ReportContext = {
     sessionCount: number;
     activeDays: number;
   }[];
-  goals: {
-    title: string;
-    description: string | null;
-    projects: ProjectMinutes[];
-  }[];
-  projectsServingNoGoal: ProjectMinutes[];
+  projects: ProjectMinutes[];
   sessions: {
     date: string;
     weekday: string;
@@ -75,7 +71,6 @@ export function buildReportContext(input: {
   kind: PeriodKind;
   /** Oldest first; the last entry is the period being reported on. */
   stats: PeriodStats[];
-  goals: Goal[];
   projects: Project[];
   categories: Category[];
   /** The period's sessions, newest first. */
@@ -83,8 +78,6 @@ export function buildReportContext(input: {
   timeZone: string;
 }): ReportContext {
   const current = input.stats.at(-1)!;
-  const activeGoals = input.goals.filter((g) => !g.archived);
-  const activeGoalIds = new Set(activeGoals.map((g) => g.id));
   const activeProjects = input.projects.filter((p) => !p.archived);
   const projectName = new Map(input.projects.map((p) => [p.id, p.name]));
   const categoryById = new Map(input.categories.map((c) => [c.id, c]));
@@ -94,6 +87,7 @@ export function buildReportContext(input: {
     const time = byProject.get(project.id) ?? NO_TIME;
     return {
       name: project.name,
+      why: project.why,
       executionMinutes: minutes(time.execution),
       preparationMinutes: minutes(time.preparation),
     };
@@ -120,16 +114,7 @@ export function buildReportContext(input: {
       sessionCount: period.sessionCount,
       activeDays: period.activeDays,
     })),
-    goals: activeGoals.map((goal) => ({
-      title: goal.title,
-      description: goal.description,
-      projects: activeProjects
-        .filter((p) => p.goalId === goal.id)
-        .map(projectMinutes),
-    })),
-    projectsServingNoGoal: activeProjects
-      .filter((p) => p.goalId === null || !activeGoalIds.has(p.goalId))
-      .map(projectMinutes),
+    projects: activeProjects.map(projectMinutes),
     sessions: input.sessions.slice(0, SESSION_LIMIT).map((session) => {
       // A category with sessions cannot be removed.
       const category = categoryById.get(session.categoryId)!;

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { discardSession } from "./actions";
 import { formatDuration } from "./duration";
@@ -23,11 +22,10 @@ export function DiscardSessionButton({
         type="button"
         variant="ghost"
         size="lg"
-        className="h-10 self-center text-muted-foreground"
+        className="h-11 w-full text-ink-muted"
         onClick={() => setConfirming(true)}
       >
-        <Trash2 />
-        Discard session
+        Discard
       </Button>
     );
   }

@@ -1,9 +1,12 @@
 import { fromLocalDateTimeInput } from "@/features/timezone/zoned-time";
-import { parseLogFields, type LogFields } from "./session-log";
+import { parseComment } from "./session-log";
 import { parseStartInput, type StartInput } from "./start-input";
 
-export type SessionInput = StartInput &
-  LogFields & { startedAt: Date; endedAt: Date };
+export type SessionInput = StartInput & {
+  outcome: string;
+  startedAt: Date;
+  endedAt: Date;
+};
 
 export type SessionInputResult =
   | { ok: true; input: SessionInput }
@@ -41,12 +44,12 @@ export function parseSessionInput(
     };
   }
 
-  const log = parseLogFields(formData);
-  if (!log.ok) return log;
+  const comment = parseComment(formData);
+  if (!comment.ok) return comment;
 
   return {
     ok: true,
-    input: { ...ids.input, ...log.value, startedAt, endedAt },
+    input: { ...ids.input, outcome: comment.value, startedAt, endedAt },
   };
 }
 

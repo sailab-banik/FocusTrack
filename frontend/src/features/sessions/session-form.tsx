@@ -8,8 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { SessionFormState } from "./actions";
 import { ChoiceChips, type ChoiceOption } from "./choice-chips";
-import { RatingChips } from "./rating-chips";
-import { LOG_LIMITS } from "./session-log";
+import { MAX_COMMENT_LENGTH } from "./session-log";
 
 export type SessionFormValues = {
   projectId: string | undefined;
@@ -17,11 +16,7 @@ export type SessionFormValues = {
   /** datetime-local values in the user's timezone */
   startedAt: string;
   endedAt: string;
-  description: string;
   outcome: string;
-  energy: number | null;
-  difficulty: number | null;
-  notes: string;
 };
 
 const initialState: SessionFormState = { status: "idle" };
@@ -93,58 +88,21 @@ export function SessionForm({
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="description">What did you work on?</Label>
-        <Textarea
-          id="description"
-          name="description"
-          defaultValue={values.description}
-          maxLength={LOG_LIMITS.description}
-          required
-          rows={2}
-        />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="outcome">Outcome: what was produced?</Label>
+        <Label htmlFor="outcome" className="font-serif text-[22px] font-normal">
+          What did you get done?
+        </Label>
         <Textarea
           id="outcome"
           name="outcome"
           defaultValue={values.outcome}
-          maxLength={LOG_LIMITS.outcome}
+          maxLength={MAX_COMMENT_LENGTH}
           required
-          rows={2}
+          rows={3}
+          className="rounded-2xl p-3.5 font-serif text-lg leading-[26px] md:text-lg"
         />
-      </div>
-
-      <RatingChips
-        name="energy"
-        label="Energy"
-        low="drained"
-        high="sharp"
-        defaultValue={values.energy}
-        clearable
-      />
-      <RatingChips
-        name="difficulty"
-        label="Difficulty"
-        low="easy"
-        high="hard"
-        defaultValue={values.difficulty}
-        clearable
-      />
-
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="notes">
-          Notes{" "}
-          <span className="font-normal text-muted-foreground">optional</span>
-        </Label>
-        <Textarea
-          id="notes"
-          name="notes"
-          defaultValue={values.notes}
-          maxLength={LOG_LIMITS.notes}
-          rows={2}
-        />
+        <p className="text-[13px] text-ink-muted">
+          One line is enough. It’s what your reports read.
+        </p>
       </div>
 
       {state.status === "error" && (
@@ -163,7 +121,7 @@ export function SessionForm({
           {pending ? "Saving…" : submitLabel}
         </Button>
         <Link
-          href="/sessions"
+          href="/log"
           className={buttonVariants({
             variant: "ghost",
             size: "lg",

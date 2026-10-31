@@ -2,12 +2,13 @@
 
 import { useEffect, useOptimistic, useState, useTransition } from "react";
 import { Coffee, Hourglass, Pause, Play, Square } from "lucide-react";
-import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import type { CategoryKind } from "@/features/categories/category-input";
 import { KindMark } from "@/features/categories/kind-mark";
 import { NudgeCard } from "@/features/nudges/nudge-card";
 import { runningNudge } from "@/features/nudges/running";
+import { ProjectTile } from "@/features/projects/project-tile";
+import { formatLocalTime } from "@/features/timezone/zoned-time";
 import { pauseSession, resumeSession } from "./actions";
 import {
   durationSeconds,
@@ -17,7 +18,7 @@ import {
   runningSeconds,
 } from "./duration";
 import { DiscardSessionButton } from "./discard-session-button";
-import { StopSessionForm } from "./stop-session-form";
+import { StopDialog } from "./stop-dialog";
 import { TimerFace } from "./timer-face";
 
 const SNOOZE_MS = 30 * 60_000;
@@ -28,18 +29,25 @@ export function RunningTimer({
   pausedAt,
   pausedSeconds,
   resumedAt,
+  projectId,
   projectName,
+  timeZone,
   categoryName,
   kind,
+  onSaved,
 }: {
   sessionId: string;
   startedAt: string;
   pausedAt: string | null;
   pausedSeconds: number;
   resumedAt: string | null;
+  projectId: string;
   projectName: string;
+  timeZone: string;
   categoryName: string;
   kind: CategoryKind;
+  /** Called with a line describing the session, once it has been saved. */
+  onSaved: (line: string) => void;
 }) {
   const [now, setNow] = useState(() => new Date());
   // Set when Stop is tapped, so time spent writing the log is not counted.
@@ -111,7 +119,7 @@ export function RunningTimer({
   }, [tabTitle]);
 
   return (
-    <div data-kind={kind} className="flex flex-col gap-8">
+    <div data-kind={kind} className="ft-in flex flex-col gap-4 md:gap-5">
       {nudge && (
         <div role="status">
           {nudge.type === "break" ? (
@@ -145,94 +153,87 @@ export function RunningTimer({
           )}
         </div>
       )}
-      <div className="flex items-end justify-between gap-4">
-        <div className="flex min-w-0 flex-col gap-1">
-          <h2 className="truncate text-2xl font-semibold tracking-tight font-stretch-[108%]">
-            {projectName}
-          </h2>
-          <p className="flex items-center gap-2 text-muted-foreground">
-            <KindMark kind={kind} />
-            {categoryName}
-            <span className="sr-only">({kind})</span>
-          </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <ProjectTile id={projectId} name={projectName} />
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <h2 className="truncate text-base font-semibold md:text-[17px]">
+              {projectName}
+            </h2>
+            <p className="hidden text-[13px] text-ink-muted md:block">
+              {pause.pausedAt
+                ? "Paused. Paused time isn’t counted."
+                : `Started at ${formatLocalTime(new Date(startedAt), timeZone)}`}
+            </p>
+          </div>
         </div>
-        {stoppedAt ? (
-          <p className="text-5xl leading-none font-bold text-muted-foreground tabular-nums font-stretch-[68%]">
-            {formatClock(elapsed)}
-          </p>
-        ) : (
-          pause.pausedAt && (
-            <p className="flex shrink-0 flex-col items-end gap-1 text-sm text-muted-foreground">
-              Paused for
+        <span className="inline-flex h-[30px] shrink-0 items-center gap-[7px] rounded-full bg-kind-soft px-3 text-[13px] font-semibold text-kind-text md:h-8">
+          <KindMark kind={kind} className="size-2" />
+          {categoryName}
+          <span className="hidden md:inline">· {kind}</span>
+          <span className="sr-only md:hidden">({kind})</span>
+        </span>
+      </div>
+      {stoppedAt && (
+        <StopDialog
+          sessionId={sessionId}
+          stoppedAt={stoppedAt}
+          label={`${projectName} · ${categoryName} · ${formatDuration(elapsed)}`}
+          kind={kind}
+          onKeepGoing={() => {
+            setNow(new Date());
+            setStoppedAt(null);
+          }}
+          onSaved={() =>
+            onSaved(`${formatDuration(elapsed)} of ${categoryName} on ${projectName}.`)
+          }
+        />
+      )}
+          <TimerFace elapsedSeconds={elapsed} paused={pause.pausedAt !== null}>
+            {pause.pausedAt && (
               <span
-                className="text-3xl leading-none font-bold text-foreground tabular-nums font-stretch-[68%]"
+                className="inline-flex h-[30px] items-center rounded-full bg-wash px-3 text-[13px] font-semibold text-ink-soft"
                 suppressHydrationWarning
               >
+                Paused ·{" "}
                 {formatClock(
                   Math.max(0, durationSeconds(new Date(pause.pausedAt), now)),
                 )}
               </span>
-            </p>
-          )
-        )}
-      </div>
-      {stoppedAt ? (
-        <StopSessionForm
-          sessionId={sessionId}
-          stoppedAt={stoppedAt}
-          elapsedSeconds={elapsed}
-          onResume={() => {
-            setNow(new Date());
-            setStoppedAt(null);
-          }}
-        />
-      ) : (
-        <>
-          <div
-            className={cn("transition-opacity", pause.pausedAt && "opacity-40")}
-          >
-            <TimerFace elapsedSeconds={elapsed} />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {pause.pausedAt ? (
-              <Button
-                size="lg"
-                variant="kind"
-                className="h-14 rounded-xl text-base"
-                aria-disabled={switching}
-                onClick={togglePause}
-              >
-                <Play className="fill-current" />
-                Resume
-              </Button>
-            ) : (
-              <Button
-                size="lg"
-                variant="outline"
-                className="h-14 rounded-xl text-base"
-                aria-disabled={switching}
-                onClick={togglePause}
-              >
-                <Pause className="fill-current" />
-                Pause
-              </Button>
             )}
+          </TimerFace>
+          <div className="flex flex-wrap items-center gap-2 md:gap-2.5">
             <Button
-              size="lg"
-              variant={pause.pausedAt ? "outline" : "default"}
-              className="h-14 rounded-xl text-base"
+              variant="outline"
+              className="h-14 flex-1 rounded-2xl border-line-strong text-base font-medium md:h-[50px] md:flex-none md:rounded-[14px] md:px-5 md:text-[15px]"
+              aria-disabled={switching}
+              onClick={togglePause}
+            >
+              {pause.pausedAt ? (
+                <Play className="size-3 fill-current" />
+              ) : (
+                <Pause className="size-3 fill-current" />
+              )}
+              {pause.pausedAt ? "Resume" : "Pause"}
+            </Button>
+            <Button
+              className="h-14 flex-[1.3] gap-2.5 rounded-2xl text-base font-semibold shadow-[0_8px_20px_rgb(46_42_120/.25)] md:h-[50px] md:flex-none md:rounded-[14px] md:px-[22px] md:text-[15px]"
               aria-disabled={switching}
               onClick={() => {
                 if (!switching) setStoppedAt(new Date());
               }}
             >
-              <Square className="fill-current" />
-              Stop session
+              <Square className="size-2.5 fill-current" />
+              <span className="md:hidden">Stop</span>
+              <span className="hidden md:inline">Stop and add a comment</span>
             </Button>
+            <div className="w-full md:ml-auto md:w-auto">
+              <DiscardSessionButton
+                sessionId={sessionId}
+                elapsedSeconds={elapsed}
+              />
+            </div>
           </div>
-          <DiscardSessionButton sessionId={sessionId} elapsedSeconds={elapsed} />
-        </>
-      )}
     </div>
   );
 }

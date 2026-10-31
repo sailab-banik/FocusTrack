@@ -3,6 +3,7 @@ import { isAuthPage, isPublicPath } from "./routes";
 
 describe("isPublicPath", () => {
   it("allows the auth pages and auth callbacks", () => {
+    expect(isPublicPath("/welcome")).toBe(true);
     expect(isPublicPath("/login")).toBe(true);
     expect(isPublicPath("/signup")).toBe(true);
     expect(isPublicPath("/forgot-password")).toBe(true);
@@ -12,7 +13,9 @@ describe("isPublicPath", () => {
 
   it("protects app pages", () => {
     expect(isPublicPath("/")).toBe(false);
-    expect(isPublicPath("/sessions")).toBe(false);
+    expect(isPublicPath("/log")).toBe(false);
+    expect(isPublicPath("/setup")).toBe(false);
+    expect(isPublicPath("/setup/ready")).toBe(false);
     expect(isPublicPath("/reset-password")).toBe(false);
     expect(isPublicPath("/login-help")).toBe(false);
     expect(isPublicPath("/authors")).toBe(false);
@@ -21,6 +24,7 @@ describe("isPublicPath", () => {
 
 describe("isAuthPage", () => {
   it("matches only the pages for signed-out visitors", () => {
+    expect(isAuthPage("/welcome")).toBe(true);
     expect(isAuthPage("/login")).toBe(true);
     expect(isAuthPage("/signup")).toBe(true);
     expect(isAuthPage("/forgot-password")).toBe(true);

@@ -2,39 +2,22 @@
 
 import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { setGoalArchived } from "@/features/goals/actions";
-import type { Goal } from "@/features/goals/queries";
 import { setProjectArchived } from "@/features/projects/actions";
 import type { Project } from "@/features/projects/queries";
 
-export function ArchivedItems({
-  goals,
-  projects,
-}: {
-  goals: Goal[];
-  projects: Project[];
-}) {
+export function ArchivedItems({ projects }: { projects: Project[] }) {
   return (
-    <details className="border-t pt-6">
+    <details>
       <summary className="w-fit cursor-pointer rounded-md text-sm font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50">
-        Archived ({goals.length + projects.length})
+        Archived ({projects.length})
       </summary>
-      <div className="mt-4 flex flex-col gap-6">
-        {goals.length > 0 && (
-          <ArchivedList
-            title="Goals"
-            items={goals.map((g) => ({ id: g.id, name: g.title }))}
-            restore={(id) => setGoalArchived(id, false)}
-          />
-        )}
-        {projects.length > 0 && (
-          <ArchivedList
-            title="Projects"
-            note="Hidden when starting a session. Past sessions keep their project."
-            items={projects}
-            restore={(id) => setProjectArchived(id, false)}
-          />
-        )}
+      <div className="mt-4">
+        <ArchivedList
+          title="Projects"
+          note="Hidden when starting a session. Past sessions keep their project."
+          items={projects}
+          restore={(id) => setProjectArchived(id, false)}
+        />
       </div>
     </details>
   );

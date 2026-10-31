@@ -57,18 +57,14 @@ export type PastSession = {
   endedAt: string;
   pausedSeconds: number;
   // Null only for sessions stopped before logging was required.
-  description: string | null;
   outcome: string | null;
-  energy: number | null;
-  difficulty: number | null;
-  notes: string | null;
 };
 
 export const HISTORY_PAGE_SIZE = 50;
 
 // One literal string: Supabase infers the row type from it.
 const PAST_SESSION_COLUMNS =
-  "id, project_id, category_id, started_at, ended_at, paused_seconds, description, outcome, energy, difficulty, notes";
+  "id, project_id, category_id, started_at, ended_at, paused_seconds, outcome";
 
 /** Newest first. Fetches one extra row to tell whether older sessions exist. */
 export async function listPastSessions(
@@ -98,6 +94,7 @@ export type SessionSpan = {
   startedAt: string;
   endedAt: string;
   pausedSeconds: number;
+  outcome: string | null;
 };
 
 /** Finished sessions started since the given time, in no particular order. */
@@ -105,7 +102,9 @@ export async function listSessionSpans(since: Date): Promise<SessionSpan[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("sessions")
-    .select("id, project_id, category_id, started_at, ended_at, paused_seconds")
+    .select(
+      "id, project_id, category_id, started_at, ended_at, paused_seconds, outcome",
+    )
     .not("ended_at", "is", null)
     .gte("started_at", since.toISOString());
   if (error) throw error;
@@ -117,6 +116,7 @@ export async function listSessionSpans(since: Date): Promise<SessionSpan[]> {
     // The query filters out running sessions.
     endedAt: row.ended_at!,
     pausedSeconds: row.paused_seconds,
+    outcome: row.outcome,
   }));
 }
 
@@ -139,11 +139,7 @@ type PastSessionRow = {
   started_at: string;
   ended_at: string | null;
   paused_seconds: number;
-  description: string | null;
   outcome: string | null;
-  energy: number | null;
-  difficulty: number | null;
-  notes: string | null;
 };
 
 function toPastSession(row: PastSessionRow): PastSession {
@@ -155,10 +151,6 @@ function toPastSession(row: PastSessionRow): PastSession {
     // The queries filter out running sessions.
     endedAt: row.ended_at!,
     pausedSeconds: row.paused_seconds,
-    description: row.description,
     outcome: row.outcome,
-    energy: row.energy,
-    difficulty: row.difficulty,
-    notes: row.notes,
   };
 }

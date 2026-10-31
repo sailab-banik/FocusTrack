@@ -4,7 +4,7 @@ import {
   HOME_PATH,
   isAuthPage,
   isPublicPath,
-  SIGN_IN_PATH,
+  WELCOME_PATH,
 } from "@/features/auth/routes";
 
 export async function proxy(request: NextRequest) {
@@ -40,7 +40,7 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (!signedIn && !isPublicPath(pathname)) {
-    return redirectKeepingCookies(request, response, SIGN_IN_PATH);
+    return redirectKeepingCookies(request, response, WELCOME_PATH);
   }
   if (signedIn && isAuthPage(pathname)) {
     return redirectKeepingCookies(request, response, HOME_PATH);

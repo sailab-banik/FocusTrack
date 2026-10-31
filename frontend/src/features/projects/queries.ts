@@ -4,20 +4,20 @@ export type Project = {
   id: string;
   name: string;
   archived: boolean;
-  goalId: string | null;
+  why: string | null;
 };
 
 export async function listProjects(): Promise<Project[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("projects")
-    .select("id, name, archived_at, goal_id")
+    .select("id, name, archived_at, why")
     .order("name");
   if (error) throw error;
   return data.map((row) => ({
     id: row.id,
     name: row.name,
     archived: row.archived_at !== null,
-    goalId: row.goal_id,
+    why: row.why,
   }));
 }

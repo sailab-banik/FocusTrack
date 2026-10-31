@@ -1,65 +1,55 @@
 import { cn } from "cn";
 import { formatClock } from "./duration";
 
-const MINUTES = Array.from({ length: 60 }, (_, index) => index + 1);
-const QUARTERS = [15, 30, 45, 60];
-
-// Minutes carry the weight and seconds stay small: the clock should show
-// that time is passing without asking to be watched.
-export function TimerFace({ elapsedSeconds }: { elapsedSeconds: number }) {
-  const clock = formatClock(elapsedSeconds);
-  // formatClock always ends in ":SS".
-  const minutes = clock.slice(0, -3);
-  const seconds = clock.slice(-3);
-
+export function TimerFace({
+  elapsedSeconds,
+  paused,
+  children,
+}: {
+  elapsedSeconds: number;
+  paused: boolean;
+  children?: React.ReactNode;
+}) {
   return (
     <div className="flex flex-col gap-5">
-      {/* Server and client clocks differ by the render delay. */}
-      <p
-        role="timer"
-        className="flex items-baseline text-[clamp(6rem,34vw,11rem)] leading-[0.8] font-bold tracking-tight tabular-nums font-stretch-[68%]"
-      >
-        <span suppressHydrationWarning>{minutes}</span>
-        <span
-          className="text-[0.38em] font-semibold opacity-60"
+      <div className="flex flex-wrap items-center gap-3 md:gap-4">
+        {/* Server and client clocks differ by the render delay. */}
+        <p
+          role="timer"
           suppressHydrationWarning
+          className={cn(
+            "font-serif text-[clamp(3.5rem,20vw,5rem)] leading-none tracking-[-0.03em] transition-colors md:text-[104px]",
+            paused && "text-[#8e8ba6]",
+          )}
         >
-          {seconds}
-        </span>
-      </p>
-      <MinuteRail secondsIntoHour={elapsedSeconds % 3600} />
+          {formatClock(elapsedSeconds)}
+        </p>
+        {!paused && (
+          <span
+            aria-hidden
+            className="ft-pulse size-3 rounded-full bg-tangerine shadow-[0_0_0_6px_var(--color-tangerine-soft)]"
+          />
+        )}
+        {children}
+      </div>
+      <HourBar secondsIntoHour={elapsedSeconds % 3600} />
     </div>
   );
 }
 
-// A ruler for the current hour. The fill is one element behind a row of
-// static tick windows, so a server/client clock mismatch corrects itself on
-// the next second instead of leaving a stale tick.
-function MinuteRail({ secondsIntoHour }: { secondsIntoHour: number }) {
+function HourBar({ secondsIntoHour }: { secondsIntoHour: number }) {
   return (
-    <div aria-hidden className="flex flex-col gap-1.5">
-      <div className="relative h-8 bg-border">
+    <div aria-hidden className="flex flex-col gap-2">
+      <div className="h-2.5 rounded-full bg-wash md:h-3">
         <div
-          className="absolute inset-y-0 left-0 bg-kind transition-[width] duration-1000 ease-linear motion-reduce:transition-none"
+          className="h-full rounded-full bg-gradient-to-r from-[#f6b37e] to-tangerine transition-[width] duration-1000 ease-linear"
           style={{ width: `${secondsIntoHour / 36}%` }}
           suppressHydrationWarning
         />
-        <div className="absolute inset-0 flex">
-          {MINUTES.map((minute) => (
-            <span
-              key={minute}
-              className={cn(
-                "flex-1 border-background not-last:border-r-2",
-                minute % 5 !== 0 && "border-t-12",
-              )}
-            />
-          ))}
-        </div>
       </div>
-      <div className="grid grid-cols-4 text-right text-xs text-muted-foreground tabular-nums">
-        {QUARTERS.map((quarter) => (
-          <span key={quarter}>{quarter}</span>
-        ))}
+      <div className="hidden justify-between text-xs text-ink-muted md:flex">
+        <span>This hour</span>
+        <span>60 min</span>
       </div>
     </div>
   );

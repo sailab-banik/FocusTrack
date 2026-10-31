@@ -1,6 +1,7 @@
 import type { AiProvider } from "@/features/ai/provider";
 import { createClient } from "@/lib/supabase/server";
 import { CLAIM_TTL_MS } from "./claims";
+import { failureReason } from "./failure-reason";
 import { buildReportContext } from "./context";
 import { loadPeriodData } from "./period-data";
 import {
@@ -107,9 +108,18 @@ async function claim(
 
   // An earlier attempt failed or was cut off; take its claim over. The
   // database stamps claimed_at itself, so the value sent here is ignored.
+  const { data: previous, error: readError } = await supabase
+    .from("reports")
+    .select("attempts")
+    .match(key)
+    .single();
+  if (readError) throw readError;
   const retaken = await supabase
     .from("reports")
-    .update({ claimed_at: new Date().toISOString() })
+    .update({
+      claimed_at: new Date().toISOString(),
+      attempts: previous.attempts + 1,
+    })
     .match(key)
     .is("written_at", null)
     .lt("claimed_at", new Date(staleBefore).toISOString())
@@ -127,6 +137,7 @@ export async function writeReport(
   claim: ReportClaim,
   timeZone: string,
 ): Promise<void> {
+  const startedAt = Date.now();
   const [data, sessions] = await Promise.all([
     loadPeriodData(claim.periods, timeZone),
     listPeriodSessions(claim.periods.at(-1)!),
@@ -134,20 +145,18 @@ export async function writeReport(
   const context = buildReportContext({
     kind: claim.kind,
     stats: data.stats,
-    goals: data.goals,
     projects: data.projects,
     categories: data.categories,
     sessions,
     timeZone,
   });
-  const report = parseReport(
-    await provider.generateJson({
-      system: SYSTEM_PROMPT,
-      user: buildUserPrompt(context),
-      schemaName: "work_report",
-      schema: REPORT_SCHEMA,
-    }),
-  );
+  const { data: json, usage } = await provider.generateJson({
+    system: SYSTEM_PROMPT,
+    user: buildUserPrompt(context),
+    schemaName: "work_report",
+    schema: REPORT_SCHEMA,
+  });
+  const report = parseReport(json);
 
   const supabase = await createClient();
   const { error } = await supabase
@@ -157,8 +166,27 @@ export async function writeReport(
       provider: provider.name,
       model: provider.model,
       prompt_version: PROMPT_VERSION,
+      input_tokens: usage?.inputTokens,
+      output_tokens: usage?.outputTokens,
+      write_ms: Date.now() - startedAt,
       written_at: new Date().toISOString(),
     })
     .eq("id", claim.id);
   if (error) throw error;
+}
+
+/** Notes why a write failed, for report health, and lets the error carry on. */
+export async function recordReportFailure(
+  claimId: string,
+  error: unknown,
+): Promise<void> {
+  const supabase = await createClient();
+  const { error: updateError } = await supabase
+    .from("reports")
+    .update({
+      last_error: failureReason(error),
+      last_failed_at: new Date().toISOString(),
+    })
+    .eq("id", claimId);
+  if (updateError) throw updateError;
 }

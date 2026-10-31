@@ -7,10 +7,18 @@ export type JsonRequest = {
   schema: JsonSchema;
 };
 
+export type TokenUsage = { inputTokens: number; outputTokens: number };
+
+export type JsonResult = {
+  /** The parsed JSON the model produced. Callers must validate it. */
+  data: unknown;
+  /** Null when the provider did not report it. */
+  usage: TokenUsage | null;
+};
+
 /** Every AI provider implements this; features never call a vendor API directly. */
 export type AiProvider = {
   name: string;
   model: string;
-  /** Returns the parsed JSON the model produced. Callers must validate it. */
-  generateJson(request: JsonRequest): Promise<unknown>;
+  generateJson(request: JsonRequest): Promise<JsonResult>;
 };

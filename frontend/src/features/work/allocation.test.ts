@@ -95,22 +95,21 @@ describe("goalAlignment", () => {
     ["old", { execution: 600, preparation: 0 }],
   ]);
 
-  it("counts time on projects linked to an active goal as serving one", () => {
+  it("counts time on projects with a why as serving a goal", () => {
     expect(
       goalAlignment(
         byProject,
         [
-          { id: "app", goalId: "engineer" },
-          { id: "side", goalId: null },
-          { id: "old", goalId: "retired" },
+          { id: "app", why: "Become an engineer" },
+          { id: "side", why: null },
+          { id: "old", why: null },
         ],
-        new Set(["engineer"]),
       ),
     ).toEqual({ trackedSeconds: 5400, servingSeconds: 3600 });
   });
 
   it("is zero when nothing was tracked", () => {
-    expect(goalAlignment(new Map(), [], new Set())).toEqual({
+    expect(goalAlignment(new Map(), [])).toEqual({
       trackedSeconds: 0,
       servingSeconds: 0,
     });

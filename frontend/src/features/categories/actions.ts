@@ -4,7 +4,13 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import { refresh } from "next/cache";
 import { requireUser } from "@/features/auth/current-user";
 import { createClient } from "@/lib/supabase/server";
-import { parseCategoryInput, type CategoryInput } from "./category-input";
+import { isUuid } from "@/lib/uuid";
+import {
+  CATEGORY_KINDS,
+  parseCategoryInput,
+  type CategoryInput,
+  type CategoryKind,
+} from "./category-input";
 
 export type CategoryFormState =
   | { status: "idle" }
@@ -47,6 +53,23 @@ export async function updateCategory(
     .update(parsed.input)
     .eq("id", id);
   return finish(error, parsed.input);
+}
+
+export async function moveCategory(
+  id: string,
+  kind: CategoryKind,
+): Promise<void> {
+  await requireUser();
+  if (!isUuid(id) || !CATEGORY_KINDS.includes(kind)) {
+    throw new Error("Invalid category move");
+  }
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("categories")
+    .update({ kind })
+    .eq("id", id);
+  if (error) throw error;
+  refresh();
 }
 
 export async function deleteCategory(id: string): Promise<CategoryFormState> {

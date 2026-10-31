@@ -2,14 +2,16 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (@media (prefers-color-scheme: dark));
+/* Daylight has no dark theme yet (docs/DESIGN.md), so nothing sets .dark. */
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-archivo);
+  --font-sans: var(--font-onest), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-heading: var(--font-sans);
+  --font-serif: var(--font-young-serif), Georgia, serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -43,6 +45,8 @@
   --color-preparation: var(--preparation);
   --color-kind: var(--kind);
   --color-on-kind: var(--on-kind);
+  --color-kind-soft: var(--kind-soft);
+  --color-kind-text: var(--kind-text);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -53,14 +57,30 @@
 }
 
 @theme {
-  /* Set --rise on the element to the distance it rises from. */
-  --animate-rise: rise 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-
-  @keyframes rise {
-    from {
-      transform: translateY(var(--rise));
-    }
-  }
+  /* Daylight palette, docs/DESIGN.md. */
+  --color-mist: #f7f5fb;
+  --color-paper: #ffffff;
+  --color-wash: #f1eef8;
+  --color-line: #e6e2f0;
+  --color-line-soft: #efecf6;
+  --color-line-strong: #d6d1e6;
+  --color-ink: #1f1b3d;
+  --color-ink-soft: #5b5878;
+  --color-ink-muted: #6c6989;
+  --color-indigo: #2e2a78;
+  --color-tangerine: #e8742a;
+  --color-tangerine-text: #b4511a;
+  --color-tangerine-soft: #fde7d6;
+  --color-periwinkle: #5e73e8;
+  --color-periwinkle-text: #4b4fc9;
+  --color-periwinkle-soft: #e3e7fd;
+  --color-peach: #ffd9c2;
+  --color-butter: #ffefb8;
+  --color-mint: #cff0e1;
+  --color-mint-text: #1e5c43;
+  --color-sky: #d6e6ff;
+  --color-lilac: #e4deff;
+  --color-rose: #ffd6df;
 
   --animate-steam: steam 2.4s ease-in-out infinite;
 
@@ -79,91 +99,50 @@
   }
 }
 
-/*
- * The interface is cool and quiet. The one warm color is reserved for
- * execution, so heat on screen always means output. Preparation is the cool
- * counterpart. Both passed the dataviz palette validator against the
- * background and card surfaces in each mode; re-run it if either changes.
- */
 :root {
-  color-scheme: light dark;
-  --background: oklch(0.975 0.007 215);
-  --foreground: oklch(0.24 0.04 225);
-  --card: oklch(0.995 0.003 215);
-  --card-foreground: oklch(0.24 0.04 225);
-  --popover: oklch(0.995 0.003 215);
-  --popover-foreground: oklch(0.24 0.04 225);
-  --primary: oklch(0.27 0.05 225);
-  --primary-foreground: oklch(0.98 0.006 215);
-  --secondary: oklch(0.945 0.01 215);
-  --secondary-foreground: oklch(0.24 0.04 225);
-  --muted: oklch(0.945 0.01 215);
-  --muted-foreground: oklch(0.5 0.03 225);
-  --accent: oklch(0.945 0.01 215);
-  --accent-foreground: oklch(0.24 0.04 225);
-  --destructive: oklch(0.52 0.2 18);
-  --border: oklch(0.9 0.014 218);
-  --input: oklch(0.86 0.018 218);
-  --ring: oklch(0.5 0.06 220);
-  --execution: oklch(0.66 0.17 48);
-  --preparation: oklch(0.62 0.105 212);
-  --signal-foreground: oklch(1 0 0);
+  color-scheme: light;
+  --background: #f7f5fb;
+  --foreground: #1f1b3d;
+  --card: #ffffff;
+  --card-foreground: #1f1b3d;
+  --popover: #ffffff;
+  --popover-foreground: #1f1b3d;
+  --primary: #2e2a78;
+  --primary-foreground: #ffffff;
+  --secondary: #f1eef8;
+  --secondary-foreground: #2e2a78;
+  --muted: #f1eef8;
+  --muted-foreground: #6c6989;
+  --accent: #f1eef8;
+  --accent-foreground: #1f1b3d;
+  --destructive: #b42318;
+  --border: #e6e2f0;
+  --input: #d6d1e6;
+  --ring: #5e73e8;
+  /* Reserved for the two kinds of time; never decoration. */
+  --execution: #e8742a;
+  --preparation: #5e73e8;
+  --signal-foreground: #ffffff;
   --chart-1: var(--execution);
   --chart-2: var(--preparation);
-  --chart-3: oklch(0.5 0.03 225);
-  --chart-4: oklch(0.7 0.02 220);
-  --chart-5: oklch(0.86 0.018 218);
+  --chart-3: #6c6989;
+  --chart-4: #d6d1e6;
+  --chart-5: #e6e2f0;
   --radius: 0.75rem;
-  --sidebar: oklch(0.995 0.003 215);
-  --sidebar-foreground: oklch(0.24 0.04 225);
-  --sidebar-primary: oklch(0.27 0.05 225);
-  --sidebar-primary-foreground: oklch(0.98 0.006 215);
-  --sidebar-accent: oklch(0.945 0.01 215);
-  --sidebar-accent-foreground: oklch(0.24 0.04 225);
-  --sidebar-border: oklch(0.9 0.014 218);
-  --sidebar-ring: oklch(0.5 0.06 220);
+  --sidebar: #ffffff;
+  --sidebar-foreground: #1f1b3d;
+  --sidebar-primary: #2e2a78;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f1eef8;
+  --sidebar-accent-foreground: #1f1b3d;
+  --sidebar-border: #e6e2f0;
+  --sidebar-ring: #5e73e8;
 
   /* Until a kind is known, kind-colored elements look like primary ones. */
   --kind: var(--primary);
   --on-kind: var(--primary-foreground);
-}
-
-@media (prefers-color-scheme: dark) {
-  /* Near-neutral graphite with a trace of cool, so the two kind colors are
-     the only color on screen. */
-  :root {
-    --background: oklch(0.215 0.005 255);
-    --foreground: oklch(0.95 0.004 255);
-    --card: oklch(0.25 0.006 255);
-    --card-foreground: oklch(0.95 0.004 255);
-    --popover: oklch(0.25 0.006 255);
-    --popover-foreground: oklch(0.95 0.004 255);
-    --primary: oklch(0.93 0.005 255);
-    --primary-foreground: oklch(0.22 0.006 255);
-    --secondary: oklch(0.29 0.007 255);
-    --secondary-foreground: oklch(0.95 0.004 255);
-    --muted: oklch(0.29 0.007 255);
-    --muted-foreground: oklch(0.72 0.01 255);
-    --accent: oklch(0.29 0.007 255);
-    --accent-foreground: oklch(0.95 0.004 255);
-    --destructive: oklch(0.72 0.17 18);
-    --border: oklch(0.34 0.007 255);
-    --input: oklch(0.4 0.008 255);
-    --ring: oklch(0.62 0.02 255);
-    --execution: oklch(0.67 0.16 50);
-    --preparation: oklch(0.67 0.105 210);
-    --chart-3: oklch(0.72 0.01 255);
-    --chart-4: oklch(0.5 0.008 255);
-    --chart-5: oklch(0.4 0.008 255);
-    --sidebar: oklch(0.25 0.006 255);
-    --sidebar-foreground: oklch(0.95 0.004 255);
-    --sidebar-primary: oklch(0.93 0.005 255);
-    --sidebar-primary-foreground: oklch(0.22 0.006 255);
-    --sidebar-accent: oklch(0.29 0.007 255);
-    --sidebar-accent-foreground: oklch(0.95 0.004 255);
-    --sidebar-border: oklch(0.34 0.007 255);
-    --sidebar-ring: oklch(0.62 0.02 255);
-  }
+  --kind-soft: var(--secondary);
+  --kind-text: var(--primary);
 }
 
 /*
@@ -175,12 +154,16 @@
 form:has([data-kind="execution"] > input:checked) {
   --kind: var(--execution);
   --on-kind: var(--signal-foreground);
+  --kind-soft: var(--color-tangerine-soft);
+  --kind-text: var(--color-tangerine-text);
 }
 
 [data-kind="preparation"],
 form:has([data-kind="preparation"] > input:checked) {
   --kind: var(--preparation);
   --on-kind: var(--signal-foreground);
+  --kind-soft: var(--color-periwinkle-soft);
+  --kind-text: var(--color-periwinkle-text);
 }
 
 @layer base {
@@ -194,14 +177,17 @@ form:has([data-kind="preparation"] > input:checked) {
     @apply font-sans;
   }
   ::selection {
-    background-color: color-mix(in oklch, var(--preparation) 35%, transparent);
+    background-color: var(--color-periwinkle-soft);
+  }
+  input,
+  textarea {
+    caret-color: var(--color-tangerine);
   }
   /* The native arrow sits flush against the border and cannot be moved, so
-     selects draw their own. A data URI cannot read tokens: the grey is one
-     that reads on both themes. Selects add right padding to clear it. */
+     selects draw their own. A data URI cannot read tokens. Selects add right padding to clear it. */
   select {
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23848b96' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236c6989' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 0.75rem center;
     background-size: 1rem;

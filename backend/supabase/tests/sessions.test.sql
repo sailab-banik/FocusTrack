@@ -48,15 +48,15 @@ select throws_ok(
   $$ update public.sessions set ended_at = now() where ended_at is null $$,
   '23514',
   null,
-  'a session cannot be stopped without a description and outcome'
+  'a session cannot be stopped without a comment'
 );
 
 select throws_ok(
-  $$ update public.sessions set ended_at = now(), description = '  ', outcome = 'Shipped'
+  $$ update public.sessions set ended_at = now(), outcome = '  '
      where ended_at is null $$,
   '23514',
   null,
-  'a blank description does not count'
+  'a blank comment does not count'
 );
 
 select throws_ok(

@@ -1,13 +1,13 @@
 import type { ReportContext } from "./context";
 
 // Bump when the prompt or schema changes; stored with each report.
-export const PROMPT_VERSION = "report-v1";
+export const PROMPT_VERSION = "report-v2";
 
 export const SYSTEM_PROMPT = `You write a report on one finished period of tracked work, a day, a week, or a month, for a personal execution tracker. The user wants to know whether their time and freedom are going into meaningful long-term work, and whether their thinking is turning into execution. Be honest and specific; do not praise for its own sake.
 
 Compare the period with the previous periods of the same length. Look for:
 - the balance of execution and preparation, and how it is moving;
-- time on projects that serve a stated goal against time that serves none;
+- time on projects with a stated goal (their "why") against time on projects with none;
 - goals or projects that got no time;
 - sustained blocks against many short, scattered sessions;
 - outcomes that show real output against outcomes that show none;

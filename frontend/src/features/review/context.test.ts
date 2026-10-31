@@ -5,15 +5,11 @@ const categories = [
   { id: "build", name: "Build", kind: "execution" as const },
   { id: "learn", name: "Learn", kind: "preparation" as const },
 ];
-const goals = [
-  { id: "g1", title: "Ship software", description: null, archived: false },
-  { id: "g2", title: "Old goal", description: null, archived: true },
-];
 const projects = [
-  { id: "app", name: "App", archived: false, goalId: "g1" },
-  { id: "side", name: "Side", archived: false, goalId: null },
-  { id: "legacy", name: "Legacy", archived: false, goalId: "g2" },
-  { id: "gone", name: "Gone", archived: true, goalId: "g1" },
+  { id: "app", name: "App", archived: false, why: "Ship software" },
+  { id: "side", name: "Side", archived: false, why: null },
+  { id: "legacy", name: "Legacy", archived: false, why: null },
+  { id: "gone", name: "Gone", archived: true, why: "Ship software" },
 ];
 const stats = [
   {
@@ -52,7 +48,6 @@ function build(
   return buildReportContext({
     kind: "week",
     stats,
-    goals,
     projects,
     categories,
     sessions,
@@ -87,20 +82,16 @@ describe("buildReportContext", () => {
     ]);
   });
 
-  it("groups active projects under active goals and the rest apart", () => {
-    const context = build();
-    expect(context.goals).toEqual([
+  it("lists active projects with why each matters", () => {
+    expect(build().projects).toEqual([
       {
-        title: "Ship software",
-        description: null,
-        projects: [
-          { name: "App", executionMinutes: 60, preparationMinutes: 0 },
-        ],
+        name: "App",
+        why: "Ship software",
+        executionMinutes: 60,
+        preparationMinutes: 0,
       },
-    ]);
-    expect(context.projectsServingNoGoal.map((p) => p.name)).toEqual([
-      "Side",
-      "Legacy",
+      expect.objectContaining({ name: "Side", why: null }),
+      expect.objectContaining({ name: "Legacy", why: null }),
     ]);
   });
 

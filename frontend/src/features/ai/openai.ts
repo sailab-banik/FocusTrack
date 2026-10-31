@@ -1,4 +1,4 @@
-import type { AiProvider, JsonRequest } from "./provider";
+import type { AiProvider, JsonRequest, JsonResult, TokenUsage } from "./provider";
 
 const RESPONSES_URL = "https://api.openai.com/v1/responses";
 const TIMEOUT_MS = 60_000;
@@ -10,6 +10,7 @@ type ContentItem =
 type ResponsesBody = {
   status?: string;
   output?: { type: string; content?: ContentItem[] }[];
+  usage?: { input_tokens?: unknown; output_tokens?: unknown };
 };
 
 // Plain fetch against the Responses API with Structured Outputs; no SDK.
@@ -17,7 +18,7 @@ export function createOpenAiProvider(apiKey: string, model: string): AiProvider 
   return {
     name: "openai",
     model,
-    async generateJson(request: JsonRequest): Promise<unknown> {
+    async generateJson(request: JsonRequest): Promise<JsonResult> {
       const response = await fetch(RESPONSES_URL, {
         method: "POST",
         headers: {
@@ -48,9 +49,19 @@ export function createOpenAiProvider(apiKey: string, model: string): AiProvider 
           `OpenAI request failed (${response.status}): ${await response.text()}`,
         );
       }
-      return parseResponsesBody((await response.json()) as ResponsesBody);
+      const body = (await response.json()) as ResponsesBody;
+      return { data: parseResponsesBody(body), usage: parseUsage(body) };
     },
   };
+}
+
+export function parseUsage(body: ResponsesBody): TokenUsage | null {
+  const inputTokens = body.usage?.input_tokens;
+  const outputTokens = body.usage?.output_tokens;
+  if (typeof inputTokens !== "number" || typeof outputTokens !== "number") {
+    return null;
+  }
+  return { inputTokens, outputTokens };
 }
 
 export function parseResponsesBody(body: ResponsesBody): unknown {

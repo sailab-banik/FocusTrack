@@ -19,7 +19,7 @@ function SubmitButton() {
       type="submit"
       variant="outline"
       size="lg"
-      className="h-11 w-full gap-2.5"
+      className="ft-secondary w-full gap-2.5"
       disabled={pending}
     >
       <GoogleMark />

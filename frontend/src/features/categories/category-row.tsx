@@ -2,28 +2,20 @@
 
 import { useActionState, useState, useTransition } from "react";
 import { Pencil } from "lucide-react";
-import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { formatDuration } from "@/features/sessions/duration";
 import {
   deleteCategory,
   updateCategory,
   type CategoryFormState,
 } from "./actions";
 import { MAX_CATEGORY_NAME_LENGTH } from "./category-input";
-import { KindSelect } from "./kind-select";
+import { KindMark } from "./kind-mark";
 import type { Category } from "./queries";
 
 const initialState: CategoryFormState = { status: "idle" };
 
-export function CategoryRow({
-  category,
-  seconds,
-}: {
-  category: Category;
-  seconds: number;
-}) {
+export function CategoryRow({ category }: { category: Category }) {
   const [editing, setEditing] = useState(false);
 
   if (editing) {
@@ -38,23 +30,15 @@ export function CategoryRow({
   }
 
   return (
-    <li className="flex items-center gap-3 py-1.5">
-      <span className="min-w-0 flex-1 truncate font-medium">
+    <li className="flex items-center gap-2.5 py-1">
+      <KindMark kind={category.kind} className="size-2" />
+      <span className="min-w-0 flex-1 truncate text-sm font-medium">
         {category.name}
-      </span>
-      <span
-        className={cn(
-          "text-sm tabular-nums",
-          seconds > 0 ? "text-foreground" : "text-muted-foreground",
-        )}
-      >
-        {formatDuration(seconds)}
       </span>
       <Button
         variant="ghost"
-        size="icon"
         aria-label={`Edit ${category.name}`}
-        className="text-muted-foreground"
+        className="size-11 text-ink-muted"
         onClick={() => setEditing(true)}
       >
         <Pencil />
@@ -83,40 +67,39 @@ function CategoryEditForm({
   const error = deleteError ?? (state.status === "error" ? state.message : null);
 
   return (
-    <form
-      action={formAction}
-      className="-mx-3 flex flex-col gap-3 rounded-xl bg-muted/60 p-3"
-    >
+    <form action={formAction} className="flex flex-col gap-3 rounded-2xl bg-mist p-3">
       <input type="hidden" name="id" value={category.id} />
-      <div className="flex flex-wrap gap-2">
-        <Input
-          name="name"
-          defaultValue={category.name}
-          aria-label="Category name"
-          maxLength={MAX_CATEGORY_NAME_LENGTH}
-          required
-          autoFocus
-          className="min-w-32 flex-1"
-        />
-        <KindSelect defaultValue={category.kind} />
-      </div>
+      <input type="hidden" name="kind" value={category.kind} />
+      <Input
+        name="name"
+        defaultValue={category.name}
+        aria-label="Category name"
+        maxLength={MAX_CATEGORY_NAME_LENGTH}
+        required
+        autoFocus
+        className="h-11 rounded-xl"
+      />
       {error && (
         <p role="alert" className="text-sm text-destructive">
           {error}
         </p>
       )}
       <div className="flex gap-1">
-        <Button type="submit" size="lg" disabled={saving}>
+        <Button type="submit" className="h-11 rounded-xl px-4" disabled={saving}>
           {saving ? "Saving…" : "Save"}
         </Button>
-        <Button type="button" variant="ghost" size="lg" onClick={onClose}>
+        <Button
+          type="button"
+          variant="ghost"
+          className="h-11 rounded-xl"
+          onClick={onClose}
+        >
           Cancel
         </Button>
         <Button
           type="button"
           variant="ghost"
-          size="lg"
-          className="ml-auto text-destructive"
+          className="ml-auto h-11 rounded-xl text-destructive"
           disabled={deleting}
           onClick={() =>
             startDelete(async () => {

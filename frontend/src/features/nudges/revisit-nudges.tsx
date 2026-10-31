@@ -1,62 +1,58 @@
 import Link from "next/link";
-import { RotateCcw } from "lucide-react";
-import { cn } from "cn";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { ProjectTile } from "@/features/projects/project-tile";
 import { formatDuration } from "@/features/sessions/duration";
 import { dayLabel } from "@/features/sessions/history";
 import { dismissNudge } from "./actions";
 import { revisitKey } from "./dismissals";
 import type { RevisitNudge } from "./revisit";
 
-// Compact rows under the start button: worth seeing, never in the way of
-// starting what was already chosen.
 export function RevisitNudges({
   nudges,
   now,
   timeZone,
-  className,
 }: {
   nudges: RevisitNudge[];
   now: Date;
   timeZone: string;
-  className?: string;
 }) {
   return (
-    <section
-      aria-label="Work to pick back up"
-      className={cn("flex flex-col divide-y border-y", className)}
-    >
+    <section aria-label="Work to pick back up" className="flex flex-col gap-3">
       {nudges.map((nudge) => (
-        <div key={nudge.projectId} className="flex gap-3 py-4">
-          <RotateCcw
-            aria-hidden
-            className="mt-0.5 size-4 shrink-0 text-muted-foreground"
-          />
-          <div className="flex min-w-0 flex-1 flex-col gap-2.5">
-            <div className="flex flex-col gap-0.5">
-              <p className="font-semibold">
-                No {nudge.projectName} for {nudge.daysSince} days
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {nudge.sessionCount} sessions over {nudge.activeDays} days (
-                {formatDuration(nudge.workedSeconds)}), last on{" "}
-                {dayLabel(nudge.lastDayKey, now, timeZone)}. Archive it if you
-                have moved on.
-              </p>
-            </div>
-            <div className="flex gap-1">
-              <Link
-                href={`/?project=${nudge.projectId}&category=${nudge.categoryId}`}
-                className={buttonVariants({ variant: "outline" })}
+        <div
+          key={nudge.projectId}
+          className="flex flex-col gap-3 rounded-3xl bg-mint p-[22px] text-[#2c4a3e]"
+        >
+          <div className="flex items-center gap-2.5">
+            <ProjectTile
+              id={nudge.projectId}
+              name={nudge.projectName}
+              size="sm"
+            />
+            <p className="text-[15px] font-semibold text-ink">
+              No {nudge.projectName} for {nudge.daysSince} days
+            </p>
+          </div>
+          <p className="text-sm leading-[21px]">
+            {nudge.sessionCount} sessions over {nudge.activeDays} days (
+            {formatDuration(nudge.workedSeconds)}), last on{" "}
+            {dayLabel(nudge.lastDayKey, now, timeZone)}. Archive it if you have
+            moved on.
+          </p>
+          <div className="flex gap-2">
+            <Link
+              href={`/?project=${nudge.projectId}&category=${nudge.categoryId}`}
+              className="flex h-11 items-center rounded-xl bg-ink px-3.5 text-[13px] font-semibold text-white"
+            >
+              Pick it back up
+            </Link>
+            <form action={dismissNudge.bind(null, revisitKey(nudge))}>
+              <button
+                type="submit"
+                className="h-11 cursor-pointer rounded-xl px-3 text-[13px] font-semibold"
               >
-                Pick it back up
-              </Link>
-              <form action={dismissNudge.bind(null, revisitKey(nudge))}>
-                <Button type="submit" variant="ghost">
-                  Dismiss
-                </Button>
-              </form>
-            </div>
+                Not now
+              </button>
+            </form>
           </div>
         </div>
       ))}

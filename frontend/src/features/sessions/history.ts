@@ -79,6 +79,25 @@ export function dayBlocks(
   });
 }
 
+const TIMELINE_START = 360;
+const TIMELINE_MINUTES = 960;
+
+/**
+ * Where a block sits on the 6 am to 10 pm timeline, in percent, cut to fit.
+ * Null when it falls entirely outside those hours.
+ */
+export function timelineSpan(
+  block: Pick<DayBlock, "startMinute" | "endMinute">,
+): { left: number; width: number } | null {
+  const start = Math.max(block.startMinute, TIMELINE_START);
+  const end = Math.min(block.endMinute, TIMELINE_START + TIMELINE_MINUTES);
+  if (end <= start) return null;
+  return {
+    left: ((start - TIMELINE_START) / TIMELINE_MINUTES) * 100,
+    width: ((end - start) / TIMELINE_MINUTES) * 100,
+  };
+}
+
 /** "Today", "Yesterday", or e.g. "Thu, Oct 8" for a YYYY-MM-DD day key. */
 export function dayLabel(dayKey: string, now: Date, timeZone: string): string {
   const today = localDayKey(now, timeZone);

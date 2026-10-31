@@ -51,13 +51,13 @@ export type Database = {
                   ]
                 },"projects": {
                   Row: {
-                    "archived_at": string | null,"created_at": string,"goal_id": string | null,"id": string,"name": string,"user_id": string
+                    "archived_at": string | null,"created_at": string,"goal_id": string | null,"id": string,"name": string,"user_id": string,"why": string | null
                   }
                   Insert: {
-                    "archived_at"?: string | null,"created_at"?: string,"goal_id"?: string | null,"id"?: string,"name": string,"user_id"?: string
+                    "archived_at"?: string | null,"created_at"?: string,"goal_id"?: string | null,"id"?: string,"name": string,"user_id"?: string,"why"?: string | null
                   }
                   Update: {
-                    "archived_at"?: string | null,"created_at"?: string,"goal_id"?: string | null,"id"?: string,"name"?: string,"user_id"?: string
+                    "archived_at"?: string | null,"created_at"?: string,"goal_id"?: string | null,"id"?: string,"name"?: string,"user_id"?: string,"why"?: string | null
                   }
                   Relationships: [
                     {
@@ -70,13 +70,13 @@ isOneToOne: false
                   ]
                 },"reports": {
                   Row: {
-                    "claimed_at": string,"headline": string | null,"id": string,"model": string | null,"next_action": string | null,"observations": Json | null,"period": string,"period_start": string,"prompt_version": string | null,"provider": string | null,"user_id": string,"written_at": string | null
+                    "attempts": number,"claimed_at": string,"headline": string | null,"id": string,"input_tokens": number | null,"last_error": string | null,"last_failed_at": string | null,"model": string | null,"next_action": string | null,"observations": Json | null,"output_tokens": number | null,"period": string,"period_start": string,"prompt_version": string | null,"provider": string | null,"user_id": string,"write_ms": number | null,"written_at": string | null
                   }
                   Insert: {
-                    "claimed_at"?: string,"headline"?: string | null,"id"?: string,"model"?: string | null,"next_action"?: string | null,"observations"?: Json | null,"period": string,"period_start": string,"prompt_version"?: string | null,"provider"?: string | null,"user_id"?: string,"written_at"?: string | null
+                    "attempts"?: number,"claimed_at"?: string,"headline"?: string | null,"id"?: string,"input_tokens"?: number | null,"last_error"?: string | null,"last_failed_at"?: string | null,"model"?: string | null,"next_action"?: string | null,"observations"?: Json | null,"output_tokens"?: number | null,"period": string,"period_start": string,"prompt_version"?: string | null,"provider"?: string | null,"user_id"?: string,"write_ms"?: number | null,"written_at"?: string | null
                   }
                   Update: {
-                    "claimed_at"?: string,"headline"?: string | null,"id"?: string,"model"?: string | null,"next_action"?: string | null,"observations"?: Json | null,"period"?: string,"period_start"?: string,"prompt_version"?: string | null,"provider"?: string | null,"user_id"?: string,"written_at"?: string | null
+                    "attempts"?: number,"claimed_at"?: string,"headline"?: string | null,"id"?: string,"input_tokens"?: number | null,"last_error"?: string | null,"last_failed_at"?: string | null,"model"?: string | null,"next_action"?: string | null,"observations"?: Json | null,"output_tokens"?: number | null,"period"?: string,"period_start"?: string,"prompt_version"?: string | null,"provider"?: string | null,"user_id"?: string,"write_ms"?: number | null,"written_at"?: string | null
                   }
                   Relationships: [
                     

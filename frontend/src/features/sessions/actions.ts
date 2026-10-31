@@ -90,11 +90,7 @@ export async function stopSession(
     .update({
       ended_at: endedAt.toISOString(),
       paused_at: null,
-      description: log.description,
       outcome: log.outcome,
-      energy: log.energy,
-      difficulty: log.difficulty,
-      notes: log.notes,
     })
     .eq("id", id)
     .is("ended_at", null)
@@ -181,7 +177,7 @@ export async function discardSession(id: string): Promise<void> {
   refresh();
 }
 
-const HISTORY_PATH = "/sessions";
+const HISTORY_PATH = "/log";
 
 export async function createSession(
   _state: SessionFormState,
@@ -245,11 +241,7 @@ function toRow(input: SessionInput) {
     category_id: input.categoryId,
     started_at: input.startedAt.toISOString(),
     ended_at: input.endedAt.toISOString(),
-    description: input.description,
     outcome: input.outcome,
-    energy: input.energy,
-    difficulty: input.difficulty,
-    notes: input.notes,
   };
 }
 

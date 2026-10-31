@@ -61,22 +61,20 @@ export function percent(part: number, whole: number): number {
 }
 
 /**
- * All time tracked, and the part of it on projects linked to an active goal.
+ * All time tracked, and the part of it on projects with a goal, their "why".
  * Archived projects count: their time still went where it went.
  */
 export function goalAlignment(
   byProject: Map<string, KindSeconds>,
-  projects: { id: string; goalId: string | null }[],
-  activeGoalIds: Set<string>,
+  projects: { id: string; why: string | null }[],
 ): { trackedSeconds: number; servingSeconds: number } {
-  const goalOf = new Map(projects.map((p) => [p.id, p.goalId]));
+  const withGoal = new Set(projects.filter((p) => p.why).map((p) => p.id));
   let trackedSeconds = 0;
   let servingSeconds = 0;
   for (const [projectId, time] of byProject) {
     const seconds = totalSeconds(time);
     trackedSeconds += seconds;
-    const goalId = goalOf.get(projectId);
-    if (goalId && activeGoalIds.has(goalId)) servingSeconds += seconds;
+    if (withGoal.has(projectId)) servingSeconds += seconds;
   }
   return { trackedSeconds, servingSeconds };
 }

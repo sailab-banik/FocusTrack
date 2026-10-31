@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseProjectGoal, parseProjectName } from "./project-input";
+import { parseProjectName, parseProjectWhy } from "./project-input";
 
 function form(fields: Record<string, string>): FormData {
   const data = new FormData();
@@ -26,25 +26,21 @@ describe("parseProjectName", () => {
   });
 });
 
-describe("parseProjectGoal", () => {
-  const GOAL_ID = "aaaaaaaa-0000-4000-8000-00000000000a";
-
-  it("accepts a goal id", () => {
-    expect(parseProjectGoal(form({ goalId: GOAL_ID }))).toEqual({
+describe("parseProjectWhy", () => {
+  it("trims a reason", () => {
+    expect(parseProjectWhy(form({ why: " Land a role " }))).toEqual({
       ok: true,
-      goalId: GOAL_ID,
+      why: "Land a role",
     });
   });
 
-  it("treats an empty or missing value as no goal", () => {
-    expect(parseProjectGoal(form({ goalId: "" }))).toEqual({
-      ok: true,
-      goalId: null,
-    });
-    expect(parseProjectGoal(form({}))).toEqual({ ok: true, goalId: null });
+  it("treats blank or missing as none", () => {
+    expect(parseProjectWhy(form({ why: "  " }))).toEqual({ ok: true, why: null });
+    expect(parseProjectWhy(form({}))).toEqual({ ok: true, why: null });
   });
 
-  it("rejects values that are not ids", () => {
-    expect(parseProjectGoal(form({ goalId: "goal-1" })).ok).toBe(false);
+  it("accepts 120 characters and rejects 121", () => {
+    expect(parseProjectWhy(form({ why: "a".repeat(120) })).ok).toBe(true);
+    expect(parseProjectWhy(form({ why: "a".repeat(121) })).ok).toBe(false);
   });
 });

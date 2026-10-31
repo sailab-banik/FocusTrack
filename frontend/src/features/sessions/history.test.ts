@@ -3,8 +3,7 @@ import {
   dayBlocks,
   dayLabel,
   executionSeconds,
-  groupSessionsByDay,
-} from "./history";
+  groupSessionsByDay, timelineSpan } from "./history";
 
 function session(id: string, startedAt: string, endedAt: string) {
   return { id, startedAt, endedAt, pausedSeconds: 0 };
@@ -143,5 +142,30 @@ describe("dayBlocks", () => {
       "UTC",
     );
     expect(block.endMinute).toBe(1440);
+  });
+});
+
+describe("timelineSpan", () => {
+  it("places a block within 6 am to 10 pm", () => {
+    expect(timelineSpan({ startMinute: 360, endMinute: 600 })).toEqual({
+      left: 0,
+      width: 25,
+    });
+  });
+
+  it("cuts a block that crosses the edge", () => {
+    expect(timelineSpan({ startMinute: 300, endMinute: 480 })).toEqual({
+      left: 0,
+      width: 12.5,
+    });
+    expect(timelineSpan({ startMinute: 1200, endMinute: 1400 })).toEqual({
+      left: 87.5,
+      width: 12.5,
+    });
+  });
+
+  it("drops a block outside those hours", () => {
+    expect(timelineSpan({ startMinute: 100, endMinute: 200 })).toBeNull();
+    expect(timelineSpan({ startMinute: 1330, endMinute: 1400 })).toBeNull();
   });
 });

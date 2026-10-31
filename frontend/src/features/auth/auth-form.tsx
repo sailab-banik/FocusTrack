@@ -1,89 +1,117 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
+import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signIn, signUp, type AuthFormState } from "./actions";
 import { AuthHeading } from "./auth-heading";
+import { CheckInbox } from "./check-inbox";
 import { MIN_PASSWORD_LENGTH } from "./credentials";
 import { GoogleButton } from "./google-button";
 import { PasswordInput } from "./password-input";
-import { FORGOT_PASSWORD_PATH, SIGN_IN_PATH, SIGN_UP_PATH } from "./routes";
+import {
+  FORGOT_PASSWORD_PATH,
+  SIGN_IN_PATH,
+  WELCOME_PATH,
+} from "./routes";
 
 const MODES = {
   "sign-in": {
     action: signIn,
-    title: "Sign in",
+    title: "Welcome back.",
     lead: "Pick up where your last session left off.",
-    submit: "Sign in",
-    pending: "Signing in…",
+    submit: "Log in",
+    pending: "Logging in…",
     passwordAutoComplete: "current-password",
-    switchPrompt: "No account yet?",
-    switchLabel: "Create one",
-    switchHref: SIGN_UP_PATH,
+    switchPrompt: "New here?",
+    switchLabel: "See how it works",
+    switchHref: WELCOME_PATH,
   },
   "sign-up": {
     action: signUp,
-    title: "Create your account",
-    lead: "Start timing your work and see what it turns into.",
+    title: "Make it yours.",
+    lead: "An account keeps your sessions in sync on your phone and your computer.",
     submit: "Create account",
     pending: "Creating account…",
     passwordAutoComplete: "new-password",
     switchPrompt: "Already have an account?",
-    switchLabel: "Sign in",
+    switchLabel: "Log in",
     switchHref: SIGN_IN_PATH,
   },
 } as const;
 
-// Off until the Google provider is set up in Supabase; see CLAUDE.md.
-const GOOGLE_SIGN_IN: boolean = false;
-
 const initialState: AuthFormState = { status: "idle" };
 
-const LINK = "font-medium text-foreground underline underline-offset-4";
+const LINK = "font-bold text-indigo";
 
 export function AuthForm({ mode }: { mode: keyof typeof MODES }) {
+  // Remounting is what clears the "check your inbox" result of the action.
+  const [attempt, setAttempt] = useState(0);
+  return (
+    <AuthFormAttempt
+      key={attempt}
+      mode={mode}
+      onRestart={() => setAttempt((count) => count + 1)}
+    />
+  );
+}
+
+function AuthFormAttempt({
+  mode,
+  onRestart,
+}: {
+  mode: keyof typeof MODES;
+  onRestart: () => void;
+}) {
   const config = MODES[mode];
   const [state, formAction, pending] = useActionState(
     config.action,
     initialState,
   );
+  const [emailOpen, setEmailOpen] = useState(false);
+  const emailHidden = mode === "sign-up" && !emailOpen;
 
   if (state.status === "check-email") {
-    return (
-      <>
-        <AuthHeading title="Check your email">
-          We sent a confirmation link to {state.email}. Open it to finish
-          creating your account.
-        </AuthHeading>
-        <p className="text-sm text-muted-foreground">
-          Already confirmed?{" "}
-          <Link href={SIGN_IN_PATH} className={LINK}>
-            Sign in
-          </Link>
-        </p>
-      </>
-    );
+    return <CheckInbox email={state.email} onUseAnotherEmail={onRestart} />;
   }
 
   return (
     <>
       <AuthHeading title={config.title}>{config.lead}</AuthHeading>
 
-      {GOOGLE_SIGN_IN && (
-        <>
-          <GoogleButton />
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <span className="h-px flex-1 bg-border" />
-            or with email
-            <span className="h-px flex-1 bg-border" />
-          </div>
-        </>
-      )}
+      <GoogleButton />
 
-      <form action={formAction} className="flex flex-col gap-5">
+      {/* Signing up on a phone, the form opens on request; see DESIGN.md. */}
+      {emailHidden && (
+        <button
+          type="button"
+          onClick={() => setEmailOpen(true)}
+          className="h-14 cursor-pointer rounded-2xl bg-paper text-[15px] font-semibold shadow-[0_1px_2px_rgb(31_27_61/.06),0_6px_16px_rgb(46_42_120/.08)] lg:hidden"
+        >
+          Continue with email
+        </button>
+      )}
+      <div
+        className={cn(
+          "items-center gap-3 text-[13px] text-ink-muted",
+          emailHidden ? "hidden lg:flex" : "flex",
+        )}
+      >
+        <span className="h-px flex-1 bg-line" />
+        or
+        <span className="h-px flex-1 bg-line" />
+      </div>
+
+      <form
+        action={formAction}
+        className={cn(
+          "flex-col gap-3.5",
+          emailHidden ? "hidden lg:flex" : "flex",
+        )}
+      >
         <div className="flex flex-col gap-2">
           <Label htmlFor="email">Email</Label>
           <Input
@@ -92,7 +120,6 @@ export function AuthForm({ mode }: { mode: keyof typeof MODES }) {
             type="email"
             autoComplete="email"
             required
-            className="h-11"
           />
         </div>
 
@@ -102,9 +129,9 @@ export function AuthForm({ mode }: { mode: keyof typeof MODES }) {
             {mode === "sign-in" && (
               <Link
                 href={FORGOT_PASSWORD_PATH}
-                className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                className="text-[13px] font-semibold text-indigo"
               >
-                Forgot password?
+                Forgot it?
               </Link>
             )}
           </div>
@@ -117,7 +144,7 @@ export function AuthForm({ mode }: { mode: keyof typeof MODES }) {
             aria-describedby={mode === "sign-up" ? "password-hint" : undefined}
           />
           {mode === "sign-up" && (
-            <p id="password-hint" className="text-sm text-muted-foreground">
+            <p id="password-hint" className="text-[13px] text-ink-muted">
               At least {MIN_PASSWORD_LENGTH} characters.
             </p>
           )}
@@ -129,17 +156,25 @@ export function AuthForm({ mode }: { mode: keyof typeof MODES }) {
           </p>
         )}
 
-        <Button type="submit" size="lg" className="h-11" disabled={pending}>
+        <Button type="submit" className="mt-1.5" disabled={pending}>
           {pending ? config.pending : config.submit}
         </Button>
       </form>
 
-      <p className="text-sm text-muted-foreground">
+      <p className="text-center text-sm text-ink-soft">
         {config.switchPrompt}{" "}
         <Link href={config.switchHref} className={LINK}>
           {config.switchLabel}
         </Link>
       </p>
+      {mode === "sign-up" && (
+        <Link
+          href={WELCOME_PATH}
+          className="flex h-11 items-center justify-center text-sm font-semibold text-ink-soft"
+        >
+          Back to the tour
+        </Link>
+      )}
     </>
   );
 }

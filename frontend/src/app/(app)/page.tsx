@@ -1,93 +1,131 @@
 import Link from "next/link";
-import { PageHeader } from "@/components/page-header";
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { buttonVariants } from "@/components/ui/button";
+import { requireUser } from "@/features/auth/current-user";
+import { SETUP_PATH } from "@/features/auth/routes";
 import { listCategories, type Category } from "@/features/categories/queries";
-import { isGuideDismissed } from "@/features/guide/dismissal";
-import { FirstRunGuide } from "@/features/guide/first-run-guide";
 import { getRevisitNudges } from "@/features/nudges/queries";
 import { RevisitNudges } from "@/features/nudges/revisit-nudges";
 import { listProjects, type Project } from "@/features/projects/queries";
+import { ReportReadyCard } from "@/features/review/report-ready-card";
+import { firstName } from "@/features/settings/name";
+import { sessionSeconds } from "@/features/sessions/duration";
+import { dayLine, greeting, skyPhase } from "@/features/sessions/greeting";
+import { executionSeconds } from "@/features/sessions/history";
+import { LocalClock } from "@/features/sessions/local-clock";
+import { DaySky } from "@/features/sessions/day-sky";
 import {
   getLastUsed,
   getRunningSession,
   listSessionSpans,
 } from "@/features/sessions/queries";
 import { StartSessionForm } from "@/features/sessions/start-session-form";
-import { TimerFace } from "@/features/sessions/timer-face";
 import { TimerScreen } from "@/features/sessions/timer-screen";
-import { TodayPanel } from "@/features/sessions/today-panel";
+import { TodayPanel, TrackedToday } from "@/features/sessions/today-panel";
 import { getTimeZone } from "@/features/timezone/time-zone";
 import {
   formatLongDate,
+  minutesIntoDay,
   startOfLocalDay,
 } from "@/features/timezone/zoned-time";
 
-export default async function TimerPage({ searchParams }: PageProps<"/">) {
+export default async function TodayPage({ searchParams }: PageProps<"/">) {
   const now = new Date();
-  const timeZone = await getTimeZone();
+  const [timeZone, user] = await Promise.all([getTimeZone(), requireUser()]);
   const projectsPromise = listProjects();
-  const [
-    running,
-    projects,
-    categories,
-    lastUsed,
-    nudges,
-    today,
-    params,
-    guideDismissed,
-  ] = await Promise.all([
-    getRunningSession(),
-    projectsPromise,
-    listCategories(),
-    getLastUsed(),
-    getRevisitNudges(projectsPromise, now, timeZone),
-    listSessionSpans(startOfLocalDay(now, timeZone)),
-    searchParams,
-    isGuideDismissed(),
-  ]);
+  const [running, projects, categories, lastUsed, nudges, today, params] =
+    await Promise.all([
+      getRunningSession(),
+      projectsPromise,
+      listCategories(),
+      getLastUsed(),
+      getRevisitNudges(projectsPromise, now, timeZone),
+      listSessionSpans(startOfLocalDay(now, timeZone)),
+      searchParams,
+    ]);
+  // Every new account lands here first; nothing can be timed without a project.
+  if (projects.length === 0) redirect(SETUP_PATH);
   const activeProjects = projects.filter((p) => !p.archived);
+  const minutes = minutesIntoDay(now, timeZone);
+  const brightSky = skyPhase(minutes) === "morning";
+  const total = today.reduce((sum, span) => sum + sessionSeconds(span), 0);
+  const execution = executionSeconds(
+    today,
+    new Map(categories.map((c) => [c.id, c])),
+  );
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-8 sm:py-12">
-      <PageHeader title={formatLongDate(now, timeZone)} />
-      {/* One column on phones, timer first so Start stays near the top. */}
-      <div className="grid items-start gap-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-16">
-        <div className="flex min-w-0 flex-col gap-8">
-          <TimerScreen
-            running={running}
-            projects={projects}
-            categories={categories}
+    // The sky runs up behind the phone header.
+    <main className="-mt-16 flex flex-col md:mt-0 md:px-2 md:pt-[18px] md:pr-7 md:pb-12">
+      <div className="flex w-full max-w-[1160px] flex-col">
+        <DaySky minutesIntoDay={minutes}>
+          <span
+            className={`text-[13px] font-medium md:text-sm ${brightSky ? "text-ink-soft" : "text-white/80"}`}
           >
-            {!running && (
-              <StartPanel
-                projects={activeProjects}
-                categories={categories}
-                // A nudge links here with the work to restart already chosen.
-                defaultProjectId={
-                  idIn(activeProjects, params.project) ?? lastUsed?.projectId
-                }
-                defaultCategoryId={
-                  idIn(categories, params.category) ?? lastUsed?.categoryId
-                }
-              />
-            )}
-          </TimerScreen>
-        </div>
-        <aside className="flex flex-col gap-10 lg:sticky lg:top-22">
-          {/* No last-used session means none has ever been started. */}
-          {!lastUsed && !guideDismissed && (
-            <FirstRunGuide hasProject={activeProjects.length > 0} />
-          )}
-          <TodayPanel
-            spans={today}
-            categories={categories}
-            projects={projects}
+            {formatLongDate(now, timeZone)}
+          </span>
+          <h1 className="font-serif text-[34px] leading-10 md:text-[44px] md:leading-[50px] md:tracking-[-0.01em]">
+            {greeting(minutes, firstName(user.name))}
+          </h1>
+          <p
+            className={`hidden text-base md:block ${brightSky ? "text-[#3e3a5e]" : "text-white/90"}`}
+          >
+            {dayLine(execution, total - execution)}
+          </p>
+          <LocalClock
+            initialNow={now.toISOString()}
             timeZone={timeZone}
+            className={`absolute right-5 bottom-[66px] text-[13px] font-medium md:top-8 md:right-9 md:bottom-auto md:text-sm ${brightSky ? "text-ink-soft" : "text-white/75"}`}
           />
-          {!running && nudges.length > 0 && (
-            <RevisitNudges nudges={nudges} now={now} timeZone={timeZone} />
-          )}
-        </aside>
+        </DaySky>
+
+        <div className="relative -mt-[54px] grid items-start gap-5 px-4 md:-mt-11 md:gap-6 md:px-5 lg:grid-cols-[minmax(0,3fr)_minmax(280px,2fr)]">
+          <div className="flex min-w-0 flex-col gap-5 md:gap-6">
+            <section
+              aria-label="Timer"
+              className="rounded-[26px] bg-paper p-5 shadow-[0_1px_2px_rgb(31_27_61/.05),0_16px_40px_rgb(46_42_120/.12)] md:rounded-3xl md:p-7"
+            >
+              <TimerScreen
+                running={running}
+                projects={projects}
+                categories={categories}
+                timeZone={timeZone}
+              >
+                {!running && (
+                  <StartPanel
+                    projects={activeProjects}
+                    categories={categories}
+                    // A nudge links here with the work to restart already chosen.
+                    defaultProjectId={
+                      idIn(activeProjects, params.project) ??
+                      idIn(activeProjects, lastUsed?.projectId)
+                    }
+                    defaultCategoryId={
+                      idIn(categories, params.category) ?? lastUsed?.categoryId
+                    }
+                  />
+                )}
+              </TimerScreen>
+            </section>
+            <TodayPanel
+              spans={today}
+              categories={categories}
+              projects={projects}
+              timeZone={timeZone}
+              now={now}
+            />
+          </div>
+          <aside className="flex min-w-0 flex-col gap-5">
+            <TrackedToday spans={today} categories={categories} />
+            <Suspense>
+              <ReportReadyCard />
+            </Suspense>
+            {!running && nudges.length > 0 && (
+              <RevisitNudges nudges={nudges} now={now} timeZone={timeZone} />
+            )}
+          </aside>
+        </div>
       </div>
     </main>
   );
@@ -106,34 +144,27 @@ function StartPanel({
 }) {
   if (projects.length === 0) {
     return (
-      <EmptyState href="/work" linkText="Add a project">
+      <EmptyState href="/projects" linkText="Add a project">
         Sessions are logged against a project. Add one to start tracking.
       </EmptyState>
     );
   }
   if (categories.length === 0) {
     return (
-      <EmptyState href="/work#kinds" linkText="Add a category">
+      <EmptyState href="/settings#categories" linkText="Add a category">
         Sessions need a category. Add one to start tracking.
       </EmptyState>
     );
   }
   return (
-    <>
-      {/* The clock that starts counting here. Phones drop it so Start stays
-          above the tab bar under the date heading. */}
-      <div aria-hidden className="hidden text-foreground/25 sm:block">
-        <TimerFace elapsedSeconds={0} />
-      </div>
-      <StartSessionForm
-        // Remount so a nudge's choice replaces the chips' earlier defaults.
-        key={`${defaultProjectId}:${defaultCategoryId}`}
-        projects={projects}
-        categories={categories}
-        defaultProjectId={defaultProjectId}
-        defaultCategoryId={defaultCategoryId}
-      />
-    </>
+    <StartSessionForm
+      // Remount so a nudge's choice replaces the earlier defaults.
+      key={`${defaultProjectId}:${defaultCategoryId}`}
+      projects={projects}
+      categories={categories}
+      defaultProjectId={defaultProjectId}
+      defaultCategoryId={defaultCategoryId}
+    />
   );
 }
 
@@ -148,10 +179,10 @@ function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-start gap-4">
-      <p className="text-lg text-muted-foreground">{children}</p>
+      <p className="font-serif text-xl">{children}</p>
       <Link
         href={href}
-        className={buttonVariants({ size: "lg", className: "h-10 px-4" })}
+        className={buttonVariants({ size: "lg", className: "h-11 px-4" })}
       >
         {linkText}
       </Link>

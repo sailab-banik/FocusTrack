@@ -1,6 +1,5 @@
-import { isUuid } from "@/lib/uuid";
-
 export const MAX_PROJECT_NAME_LENGTH = 80;
+export const MAX_PROJECT_WHY_LENGTH = 120;
 
 export type ProjectNameResult =
   | { ok: true; name: string }
@@ -23,14 +22,19 @@ export function parseProjectName(formData: FormData): ProjectNameResult {
   return { ok: true, name: trimmedName };
 }
 
-export type ProjectGoalResult =
-  | { ok: true; goalId: string | null }
+export type ProjectWhyResult =
+  | { ok: true; why: string | null }
   | { ok: false; error: string };
 
-/** An empty value unlinks the project from its goal. */
-export function parseProjectGoal(formData: FormData): ProjectGoalResult {
-  const goalId = formData.get("goalId");
-  if (goalId === null || goalId === "") return { ok: true, goalId: null };
-  if (!isUuid(goalId)) return { ok: false, error: "Choose a valid goal." };
-  return { ok: true, goalId };
+/** A blank value means the project has no reason set. */
+export function parseProjectWhy(formData: FormData): ProjectWhyResult {
+  const why = formData.get("why");
+  const trimmed = typeof why === "string" ? why.trim() : "";
+  if (trimmed.length > MAX_PROJECT_WHY_LENGTH) {
+    return {
+      ok: false,
+      error: `Keep the reason to ${MAX_PROJECT_WHY_LENGTH} characters or fewer.`,
+    };
+  }
+  return { ok: true, why: trimmed === "" ? null : trimmed };
 }

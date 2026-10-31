@@ -1,0 +1,710 @@
+/*
+ * Daylight motion, plus the onboarding sky and form sizes: docs/DESIGN.md.
+ * Deliberately not in a cascade layer, so these rules outrank Tailwind's
+ * utilities on the shared Button and Input inside .daylight.
+ */
+:root {
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-move: cubic-bezier(0.65, 0, 0.15, 1);
+}
+
+.daylight {
+  position: relative;
+  isolation: isolate;
+  flex: 1;
+  min-height: 100dvh;
+  overflow-x: clip;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--color-periwinkle);
+  outline-offset: 2px;
+}
+
+/* Shared form controls, restyled here so the auth forms keep their markup. */
+.daylight [data-slot="input"] {
+  height: 52px;
+  padding: 0 16px;
+  border: 1.5px solid var(--color-line);
+  border-radius: 14px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  caret-color: var(--color-tangerine);
+  font-size: 16px;
+}
+
+.daylight [data-slot="input"]:focus {
+  outline: none;
+  border-color: var(--color-periwinkle);
+  box-shadow: 0 0 0 4px var(--color-periwinkle-soft);
+}
+
+.daylight [data-slot="input"]::placeholder {
+  color: #8e8ba6;
+}
+
+.daylight [data-slot="input"] + [data-slot="button"] {
+  top: 8px;
+  right: 8px;
+}
+
+.daylight [data-slot="label"] {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.daylight form > [data-slot="button"][type="submit"],
+.daylight .ft-primary {
+  height: 56px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--color-indigo);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 10px 24px rgb(46 42 120 / 0.25);
+}
+
+.daylight .ft-primary:disabled {
+  opacity: 1;
+  background: var(--color-line);
+  color: var(--color-ink-muted);
+  box-shadow: none;
+}
+
+.daylight form > .ft-secondary[data-slot="button"][type="submit"] {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-size: 15px;
+  box-shadow:
+    0 1px 2px rgb(31 27 61 / 0.06),
+    0 6px 16px rgb(46 42 120 / 0.08);
+}
+
+/* Where the sky, sun and hills sit at each stage of the sunrise. */
+.daylight[data-stage="cover"] {
+  --sky-w: 100%;
+  --sky-h: 62dvh;
+  --sky-r: 0px;
+  --sun-x: 50%;
+  --sun-y: 36dvh;
+  --sun-d: 76px;
+  --sun-color: #ffb27d;
+  --glow-color: #ff8a6b;
+  --hill-back: #7c5fb0;
+  --hill-front: #5a4796;
+  --dawn: 1;
+  --morning: 0;
+  --day: 0;
+  --top-color: #ffffff;
+  --logo-bg: rgb(255 255 255 / 0.18);
+  --cloud-a-x: 60px;
+  --cloud-a-y: 120px;
+  --cloud-b-x: 260px;
+  --cloud-b-y: 200px;
+}
+
+.daylight[data-stage="tour"] {
+  --sky-w: 100%;
+  --sky-h: 360px;
+  --sky-r: 32px;
+  --sun-d: 54px;
+  --sun-color: #ff9a5a;
+  --dawn: 0;
+  --morning: 1;
+  --day: 0;
+  --cloud-a-x: 60px;
+  --cloud-a-y: 30px;
+  --cloud-b-x: 260px;
+  --cloud-b-y: 120px;
+}
+
+.daylight[data-stage="day"],
+.daylight[data-stage="ready"] {
+  --sky-w: 100%;
+  --sky-h: 196px;
+  --sky-r: 32px;
+  --sun-x: 77%;
+  --sun-y: 92px;
+  --sun-d: 46px;
+  --sun-color: #ffc56b;
+  --dawn: 0;
+  --morning: 0;
+  --day: 1;
+  --cloud-a-x: 60px;
+  --cloud-a-y: 26px;
+  --cloud-b-x: 260px;
+  --cloud-b-y: 70px;
+}
+
+.daylight[data-stage="ready"] {
+  --sky-h: 280px;
+  --sun-x: 50%;
+  --sun-y: 112px;
+}
+
+.daylight[data-tour="0"] {
+  --sun-x: 24%;
+  --sun-y: 96px;
+}
+.daylight[data-tour="1"] {
+  --sun-x: 41%;
+  --sun-y: 74px;
+}
+.daylight[data-tour="2"] {
+  --sun-x: 60%;
+  --sun-y: 70px;
+}
+.daylight[data-tour="3"] {
+  --sun-x: 78%;
+  --sun-y: 92px;
+}
+
+@media (min-width: 64rem) {
+  .daylight[data-stage="cover"] {
+    --sky-h: 100dvh;
+    --sun-x: 73.6%;
+    --sun-y: 52dvh;
+    --sun-d: 130px;
+    --cloud-a-x: 26%;
+    --cloud-a-y: 150px;
+    --cloud-b-x: 85%;
+    --cloud-b-y: 260px;
+  }
+  .daylight[data-stage="tour"] {
+    --sky-w: 52.8%;
+    --sky-h: 100dvh;
+    --sky-r: 40px;
+    --sun-d: 84px;
+    --cloud-a-x: 90px;
+    --cloud-a-y: 60px;
+    --cloud-b-x: 74%;
+    --cloud-b-y: 150px;
+  }
+  .daylight[data-stage="day"],
+  .daylight[data-stage="ready"] {
+    --sky-w: 38.9%;
+    --sky-h: 100dvh;
+    --sky-r: 40px;
+    --sun-x: 75%;
+    --sun-y: 150px;
+    --sun-d: 70px;
+    --cloud-a-x: 60px;
+    --cloud-a-y: 80px;
+    --cloud-b-x: 64%;
+    --cloud-b-y: 230px;
+  }
+  .daylight[data-tour="0"] {
+    --sun-x: 18.4%;
+    --sun-y: 150px;
+  }
+  .daylight[data-tour="1"] {
+    --sun-x: 38%;
+    --sun-y: 120px;
+  }
+  .daylight[data-tour="2"] {
+    --sun-x: 59%;
+    --sun-y: 112px;
+  }
+  .daylight[data-tour="3"] {
+    --sun-x: 80%;
+    --sun-y: 132px;
+  }
+}
+
+/* The sky never remounts: only these properties move between stages. */
+.sky {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: var(--sky-w);
+  height: var(--sky-h);
+  overflow: hidden;
+  border-radius: 0 0 var(--sky-r) var(--sky-r);
+  transition:
+    width 1200ms var(--ease-move),
+    height 1100ms var(--ease-move),
+    border-radius 1100ms var(--ease-move);
+}
+
+.sky-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 62dvh;
+  transition: opacity 1200ms ease;
+}
+
+.sky-dawn {
+  opacity: var(--dawn);
+  background: linear-gradient(
+    180deg,
+    #2e2a78 0%,
+    #6b4fa8 38%,
+    #d98da8 70%,
+    #ffc9a8 100%
+  );
+}
+
+.sky-morning {
+  opacity: var(--morning);
+  background: linear-gradient(180deg, #ffe3cf 0%, #f8dceb 55%, #e4deff 100%);
+}
+
+.sky-day {
+  opacity: var(--day);
+  background: linear-gradient(180deg, #d7e8ff 0%, #ede8ff 60%, #fff1e4 100%);
+}
+
+.sky-stars {
+  opacity: var(--dawn);
+  transition-duration: 900ms;
+}
+
+.sky-stars span {
+  position: absolute;
+  border-radius: 50%;
+  background: #ffffff;
+  animation: ft-twinkle 3.6s ease-in-out infinite;
+}
+
+@media (min-width: 64rem) {
+  .sky-layer {
+    height: 100dvh;
+  }
+}
+
+.sun {
+  position: absolute;
+  left: var(--sun-x);
+  top: var(--sun-y);
+  width: 0;
+  height: 0;
+  transition:
+    left 1400ms cubic-bezier(0.45, 0, 0.2, 1),
+    top 1400ms cubic-bezier(0.45, 0, 0.2, 1);
+}
+
+.sun-rising {
+  animation: ft-rise 2600ms var(--ease) both;
+}
+
+.sun-glow {
+  position: absolute;
+  left: -70px;
+  top: -70px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: var(--glow-color, #ffb27d);
+  filter: blur(22px);
+  animation: ft-glow 6s ease-in-out infinite;
+  transition: background 1200ms ease;
+}
+
+.sun-core {
+  position: absolute;
+  left: calc(var(--sun-d) / -2);
+  top: calc(var(--sun-d) / -2);
+  width: var(--sun-d);
+  height: var(--sun-d);
+  border-radius: 50%;
+  background: var(--sun-color);
+  transition:
+    background 1200ms ease,
+    width 1200ms ease,
+    height 1200ms ease,
+    left 1200ms ease,
+    top 1200ms ease;
+}
+
+.cloud {
+  position: absolute;
+  fill: #ffffff;
+  transition:
+    left 1100ms var(--ease-move),
+    top 1100ms var(--ease-move);
+}
+
+.cloud-a {
+  left: var(--cloud-a-x);
+  top: var(--cloud-a-y);
+  animation: ft-drift 18s ease-in-out infinite alternate;
+}
+
+.cloud-b {
+  left: var(--cloud-b-x);
+  top: var(--cloud-b-y);
+  animation: ft-drift 24s ease-in-out infinite alternate-reverse;
+}
+
+.hills {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 90px;
+}
+
+.hill-back {
+  fill: var(--hill-back, #d9d1f6);
+  transition: fill 1200ms ease;
+}
+
+.hill-front {
+  fill: var(--hill-front, #c4baf0);
+  transition: fill 1200ms ease;
+}
+
+@media (min-width: 64rem) {
+  .hills {
+    height: 200px;
+  }
+  .sun-glow {
+    left: -110px;
+    top: -110px;
+    width: 220px;
+    height: 220px;
+    filter: blur(34px);
+  }
+}
+
+.sunrise-logo {
+  color: var(--top-color, var(--color-ink));
+  transition: color 900ms ease;
+}
+
+.sunrise-logo-bg {
+  fill: var(--logo-bg, var(--color-indigo));
+  transition: fill 900ms ease;
+}
+
+/* Motion: settle, don't bounce. Set a delay inline with animation-delay. */
+.ft-in {
+  animation: ft-in 640ms var(--ease) both;
+}
+.ft-in-back {
+  animation: ft-in-back 640ms var(--ease) both;
+}
+.ft-stage {
+  animation: ft-stage 500ms var(--ease) both;
+}
+.ft-fly {
+  animation: ft-fly 950ms var(--ease-move) both;
+}
+.ft-grow {
+  transform-origin: left center;
+  animation: ft-grow 900ms var(--ease) both;
+}
+.ft-up {
+  transform-origin: bottom;
+  animation: ft-up 700ms var(--ease) both;
+}
+.ft-pop {
+  animation: ft-pop 520ms var(--ease) both;
+}
+.ft-slide {
+  animation: ft-slide 520ms var(--ease) both;
+}
+.ft-type {
+  animation: ft-type 900ms steps(24, end) both;
+}
+.ft-caret {
+  animation: ft-caret 1s steps(1) infinite;
+}
+.ft-press {
+  animation: ft-press 380ms ease-in-out both;
+}
+.ft-dim {
+  animation: ft-dim 300ms ease-out both;
+}
+.ft-sheet {
+  animation: ft-sheet 620ms var(--ease) both;
+}
+.ft-check {
+  stroke-dasharray: 30;
+  animation: ft-check 420ms ease-out both;
+}
+.ft-plane {
+  animation: ft-plane 1100ms var(--ease) 300ms both;
+}
+.ft-seg {
+  transform-origin: left center;
+  animation: ft-seg 600ms var(--ease) 150ms both;
+}
+.ft-drop {
+  animation: ft-drop 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.ft-row {
+  animation: ft-row 1400ms var(--ease) both;
+}
+.ft-pulse {
+  animation: ft-pulse 1.8s ease-in-out infinite;
+}
+.ft-breathe {
+  animation: ft-breathe 2.6s ease-in-out 1.2s infinite;
+}
+
+/* Sheet on phones, centered card on desktop. */
+.ft-dialog {
+  position: fixed;
+  inset: auto 0 0;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 12px 20px calc(28px + env(safe-area-inset-bottom));
+  border: 0;
+  border-radius: 28px 28px 0 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  animation: ft-dialog-sheet 420ms var(--ease) both;
+}
+.ft-dialog::backdrop {
+  background: rgb(31 27 61 / 0.35);
+  backdrop-filter: blur(3px);
+}
+@media (min-width: 48rem) {
+  .ft-dialog {
+    inset: 0;
+    max-width: 520px;
+    height: fit-content;
+    margin: auto;
+    padding: 32px;
+    border-radius: 28px;
+    box-shadow: 0 30px 80px rgb(31 27 61 / 0.25);
+  }
+}
+@keyframes ft-dialog-sheet {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+/* The welcome text rides up on a sheet on phones; on desktop it sits in the sky. */
+.ft-cover-sheet {
+  animation: ft-sheet 900ms var(--ease) 500ms both;
+}
+
+@media (min-width: 64rem) {
+  .ft-cover-sheet {
+    animation: none;
+  }
+}
+
+@keyframes ft-rise {
+  from {
+    transform: translateY(150px);
+  }
+}
+@keyframes ft-glow {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.08);
+  }
+}
+@keyframes ft-drift {
+  from {
+    transform: translateX(-24px);
+  }
+  to {
+    transform: translateX(40px);
+  }
+}
+@keyframes ft-twinkle {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes ft-sheet {
+  from {
+    transform: translateY(110%);
+  }
+}
+@keyframes ft-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+    filter: blur(6px);
+  }
+}
+@keyframes ft-in-back {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+    filter: blur(6px);
+  }
+}
+@keyframes ft-stage {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+}
+@keyframes ft-fly {
+  0% {
+    opacity: 0;
+    transform: translate(var(--fx), var(--fy)) rotate(var(--fr)) scale(0.9);
+  }
+  30% {
+    opacity: 1;
+  }
+}
+@keyframes ft-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes ft-up {
+  from {
+    transform: scaleY(0);
+  }
+}
+@keyframes ft-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+@keyframes ft-slide {
+  from {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+}
+@keyframes ft-type {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes ft-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes ft-press {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(0.9);
+    filter: brightness(0.9);
+  }
+}
+@keyframes ft-dim {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes ft-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(232 116 42 / 0);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgb(232 116 42 / 0.18);
+  }
+}
+@keyframes ft-drop {
+  0% {
+    transform: translateY(-60px) rotate(-12deg);
+    opacity: 0;
+  }
+  55% {
+    transform: translateY(8px) rotate(4deg);
+    opacity: 1;
+  }
+  75% {
+    transform: translateY(-4px) rotate(-2deg);
+  }
+}
+@keyframes ft-row {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+    background: #fff4ea;
+  }
+  60% {
+    opacity: 1;
+    transform: none;
+    background: #fff4ea;
+  }
+}
+@keyframes ft-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+@keyframes ft-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+}
+@keyframes ft-plane {
+  0% {
+    opacity: 0;
+    transform: translate(-60px, 40px) rotate(-10deg);
+  }
+  60% {
+    opacity: 1;
+  }
+}
+@keyframes ft-check {
+  from {
+    stroke-dashoffset: 30;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes ft-seg {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition: none !important;
+  }
+}

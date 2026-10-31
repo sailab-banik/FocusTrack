@@ -86,12 +86,11 @@ export function HistoryFeed({
             )}
             <Button
               variant="outline"
-              size="lg"
-              className="h-10 px-4"
+              className="h-11 rounded-full px-[18px] text-[13px] font-semibold text-ink-soft"
               disabled={loading}
               onClick={loadMore}
             >
-              {loading ? "Loading older sessions…" : "Load older sessions"}
+              {loading ? "Loading earlier days…" : "Show earlier days"}
             </Button>
           </>
         ) : (

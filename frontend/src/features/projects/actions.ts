@@ -4,8 +4,7 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import { refresh } from "next/cache";
 import { requireUser } from "@/features/auth/current-user";
 import { createClient } from "@/lib/supabase/server";
-import { isUuid } from "@/lib/uuid";
-import { parseProjectGoal, parseProjectName } from "./project-input";
+import { parseProjectName, parseProjectWhy } from "./project-input";
 
 export type ProjectFormState =
   | { status: "idle" }
@@ -13,7 +12,6 @@ export type ProjectFormState =
   | { status: "error"; message: string };
 
 const UNIQUE_VIOLATION = "23505";
-const FOREIGN_KEY_VIOLATION = "23503";
 
 // user_id is never sent: the column defaults to auth.uid() and RLS rejects
 // rows that belong to anyone else.
@@ -24,14 +22,11 @@ export async function createProject(
   await requireUser();
   const name = parseProjectName(formData);
   if (!name.ok) return { status: "error", message: name.error };
-  const goal = parseProjectGoal(formData);
-  if (!goal.ok) return { status: "error", message: goal.error };
 
   const supabase = await createClient();
   const { error } = await supabase
     .from("projects")
-    .insert({ name: name.name, goal_id: goal.goalId });
-  if (error?.code === FOREIGN_KEY_VIOLATION) return GOAL_GONE;
+    .insert({ name: name.name });
   return finish(error, name.name);
 }
 
@@ -46,44 +41,36 @@ export async function updateProject(
   }
   const name = parseProjectName(formData);
   if (!name.ok) return { status: "error", message: name.error };
-  const goal = parseProjectGoal(formData);
-  if (!goal.ok) return { status: "error", message: goal.error };
 
   const supabase = await createClient();
   const { error } = await supabase
     .from("projects")
-    .update({ name: name.name, goal_id: goal.goalId })
+    .update({ name: name.name })
     .eq("id", id);
-  if (error?.code === FOREIGN_KEY_VIOLATION) return GOAL_GONE;
   return finish(error, name.name);
 }
 
-/** Links an existing project to a goal, moving it from any other goal. */
-export async function linkProject(
+export async function setProjectWhy(
   _state: ProjectFormState,
   formData: FormData,
 ): Promise<ProjectFormState> {
   await requireUser();
   const id = formData.get("id");
-  const goalId = formData.get("goalId");
-  if (!isUuid(id)) return { status: "error", message: "Choose a project." };
-  if (!isUuid(goalId)) return { status: "error", message: "Missing goal." };
+  if (typeof id !== "string") {
+    return { status: "error", message: "Missing project." };
+  }
+  const parsed = parseProjectWhy(formData);
+  if (!parsed.ok) return { status: "error", message: parsed.error };
 
   const supabase = await createClient();
   const { error } = await supabase
     .from("projects")
-    .update({ goal_id: goalId })
+    .update({ why: parsed.why })
     .eq("id", id);
-  if (error?.code === FOREIGN_KEY_VIOLATION) return GOAL_GONE;
   if (error) throw error;
   refresh();
   return { status: "saved" };
 }
-
-const GOAL_GONE: ProjectFormState = {
-  status: "error",
-  message: "That goal no longer exists. Reload the page.",
-};
 
 export async function setProjectArchived(
   id: string,
