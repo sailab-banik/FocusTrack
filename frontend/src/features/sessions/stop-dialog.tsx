@@ -1,6 +1,6 @@
 "use client";
 
-import { Mic, Square } from "lucide-react";
+import { Mic } from "lucide-react";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { CategoryKind } from "@/features/categories/category-input";
@@ -13,6 +13,10 @@ import { MAX_COMMENT_LENGTH } from "./session-log";
 import { useDictation } from "./use-dictation";
 
 const initialState: SessionFormState = { status: "idle" };
+
+// Shared by the textarea and the live transcript over it, so text lines up.
+const BOX_TEXT =
+  "rounded-2xl border-[1.5px] p-3.5 pr-14 font-serif text-[17px] leading-6 md:pl-4 md:text-lg md:leading-[26px]";
 
 /**
  * The one question at the end of a session. The native dialog brings the
@@ -64,6 +68,30 @@ export function StopDialog({
     dialog.current?.showModal();
   }, []);
 
+  const box = useRef<HTMLTextAreaElement>(null);
+  const liveText = useRef<HTMLDivElement>(null);
+  // Tapping the mic moves focus to it. Return it to the end of the text, both
+  // when listening starts and once the transcript has landed.
+  useEffect(() => {
+    if (!box.current) return;
+    const end = box.current.value.length;
+    box.current.focus();
+    box.current.setSelectionRange(end, end);
+    box.current.scrollTop = box.current.scrollHeight;
+  }, [dictation.listening]);
+
+  const written = comment.trimEnd();
+  const spoken = appendDictation(
+    written,
+    dictation.heard,
+    MAX_COMMENT_LENGTH,
+  ).slice(written.length);
+
+  useEffect(() => {
+    if (!liveText.current) return;
+    liveText.current.scrollTop = liveText.current.scrollHeight;
+  }, [dictation.listening, spoken]);
+
   return (
     <dialog
       ref={dialog}
@@ -95,42 +123,54 @@ export function StopDialog({
         >
           What did you get done?
         </label>
-        <textarea
-          id="stop-comment"
-          name="outcome"
-          rows={3}
-          required
-          autoFocus
-          maxLength={MAX_COMMENT_LENGTH}
-          value={comment}
-          onChange={(event) => setComment(event.target.value)}
-          placeholder={placeholder}
-          className="resize-none rounded-2xl border-[1.5px] border-line-strong bg-paper p-3.5 font-serif text-[17px] leading-6 outline-none placeholder:text-[#8e8ba6] focus:border-periwinkle focus:shadow-[0_0_0_4px_var(--color-periwinkle-soft)] md:px-4 md:text-lg md:leading-[26px]"
-        />
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-[13px] text-ink-muted">
-            {dictation.listening
-              ? dictation.heard || "Listening…"
-              : "One line is enough. It’s what your reports read."}
-          </span>
+        <div className="relative">
+          <textarea
+            ref={box}
+            id="stop-comment"
+            name="outcome"
+            rows={3}
+            required
+            autoFocus
+            readOnly={dictation.listening}
+            maxLength={MAX_COMMENT_LENGTH}
+            value={comment}
+            onChange={(event) => setComment(event.target.value)}
+            placeholder={dictation.listening ? "" : placeholder}
+            className={`${BOX_TEXT} block w-full resize-none border-line-strong bg-paper outline-none placeholder:text-[#8e8ba6] focus:border-periwinkle focus:shadow-[0_0_0_4px_var(--color-periwinkle-soft)] ${dictation.listening ? "text-transparent caret-transparent" : ""}`}
+          />
+          {/* A textarea can't color part of its text, so while listening this
+              draws it instead: saved text normally, live words like a placeholder. */}
+          {dictation.listening && (
+            <div
+              ref={liveText}
+              aria-hidden
+              className={`${BOX_TEXT} pointer-events-none absolute inset-0 overflow-hidden border-transparent break-words whitespace-pre-wrap`}
+            >
+              {written}
+              <span className="text-[#8e8ba6]">
+                {spoken || (written === "" ? "Listening…" : "")}
+              </span>
+            </div>
+          )}
           {dictation.supported && (
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               size="icon"
               onClick={dictation.toggle}
               aria-label="Voice input"
               aria-pressed={dictation.listening}
-              className="size-11 shrink-0 rounded-full border-line-strong aria-pressed:border-periwinkle aria-pressed:bg-periwinkle-soft aria-pressed:text-periwinkle-text"
+              className="absolute right-1.5 bottom-1.5 size-11 rounded-full text-ink-soft aria-pressed:bg-periwinkle-soft aria-pressed:text-periwinkle-text aria-pressed:hover:bg-periwinkle-soft aria-pressed:hover:text-periwinkle-text"
             >
-              {dictation.listening ? (
-                <Square aria-hidden className="ft-pulse size-4 fill-current" />
-              ) : (
-                <Mic aria-hidden className="size-5" />
-              )}
+              {dictation.listening ? <ListeningMark /> : <Mic aria-hidden className="size-5" />}
             </Button>
           )}
         </div>
+        <span className="text-[13px] text-ink-muted">
+          {dictation.listening
+            ? "Listening. Tap to stop, or pause for 5 seconds."
+            : "One line is enough. It’s what your reports read."}
+        </span>
         {dictation.error && (
           <p role="alert" className="text-sm text-destructive">
             {dictation.error}
@@ -168,6 +208,17 @@ export function StopDialog({
         </div>
       </form>
     </dialog>
+  );
+}
+
+function ListeningMark() {
+  return (
+    <span aria-hidden className="flex h-5 items-center gap-[3px]">
+      <span className="ft-listen-ring absolute inset-0 rounded-full bg-periwinkle" />
+      <span className="ft-listen-bar h-3 w-[3px] rounded-full bg-current" />
+      <span className="ft-listen-bar h-5 w-[3px] rounded-full bg-current [animation-delay:150ms]" />
+      <span className="ft-listen-bar h-3 w-[3px] rounded-full bg-current [animation-delay:300ms]" />
+    </span>
   );
 }
 

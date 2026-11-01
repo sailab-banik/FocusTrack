@@ -449,6 +449,13 @@ button:focus-visible {
 .ft-breathe {
   animation: ft-breathe 2.6s ease-in-out 1.2s infinite;
 }
+.ft-listen-bar {
+  animation: ft-listen-bar 900ms ease-in-out infinite;
+}
+.ft-listen-ring {
+  opacity: 0;
+  animation: ft-listen-ring 1.6s ease-out infinite;
+}
 
 /* Sheet on phones, centered card on desktop. */
 .ft-dialog {
@@ -664,6 +671,25 @@ button:focus-visible {
   }
   50% {
     transform: translateY(-5px);
+  }
+}
+@keyframes ft-listen-bar {
+  0%,
+  100% {
+    transform: scaleY(0.4);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+@keyframes ft-listen-ring {
+  0% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.35);
   }
 }
 @keyframes ft-pulse {

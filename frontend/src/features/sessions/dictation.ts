@@ -11,6 +11,19 @@ export function appendDictation(
   return joined.slice(0, maxLength);
 }
 
+/**
+ * Joins a recognizer's results into one transcript. Android Chrome repeats
+ * everything said so far in each new result, so a result that starts with the
+ * text so far replaces it rather than adding to it.
+ */
+export function joinResults(transcripts: string[]): string {
+  return transcripts.reduce((joined, next) => {
+    if (next.trim().startsWith(joined.trim())) return next;
+    const spaced = joined.endsWith(" ") || next.startsWith(" ");
+    return spaced ? joined + next : `${joined} ${next}`;
+  }, "");
+}
+
 export function dictationErrorMessage(error: string): string | null {
   switch (error) {
     // Our own abort when the dialog closes.

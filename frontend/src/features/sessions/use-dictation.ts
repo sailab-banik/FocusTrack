@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { dictationErrorMessage } from "./dictation";
+import { dictationErrorMessage, joinResults } from "./dictation";
+
+const SILENCE_LIMIT_MS = 5000;
 
 // TypeScript's DOM types include the result objects but not the recognizer.
 type Recognizer = {
@@ -31,6 +33,7 @@ declare global {
  */
 export function useDictation(onText: (text: string) => void) {
   const recognizer = useRef<Recognizer | null>(null);
+  const silenceTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const [Recognition] = useState(
     () => window.SpeechRecognition ?? window.webkitSpeechRecognition,
   );
@@ -41,6 +44,7 @@ export function useDictation(onText: (text: string) => void) {
   // Closing the dialog must release the microphone and drop what was heard.
   useEffect(
     () => () => {
+      clearTimeout(silenceTimer.current);
       if (!recognizer.current) return;
       recognizer.current.onresult = null;
       recognizer.current.onerror = null;
@@ -53,20 +57,29 @@ export function useDictation(onText: (text: string) => void) {
   function start(Constructor: RecognizerConstructor) {
     const next = new Constructor();
     next.lang = navigator.language;
-    // One utterance per tap suits a one-line outcome, and avoids the repeated
-    // results Android Chrome produces in continuous mode.
-    next.continuous = false;
+    // Left to itself the browser stops at its own short pause. Continuous mode
+    // lets the silence limit below decide instead.
+    next.continuous = true;
     next.interimResults = true;
+
+    function restartSilenceTimer() {
+      clearTimeout(silenceTimer.current);
+      silenceTimer.current = setTimeout(() => next.stop(), SILENCE_LIMIT_MS);
+    }
 
     let latest = "";
     next.onresult = ({ results }) => {
-      latest = Array.from(results, (result) => result[0].transcript).join("");
+      latest = joinResults(
+        Array.from(results, (result) => result[0].transcript),
+      );
       setHeard(latest);
+      restartSilenceTimer();
     };
     next.onerror = (event) => setError(dictationErrorMessage(event.error));
     // Commit here, not on isFinal, since browsers differ on whether the last
     // result is marked final. Stopping early keeps what was heard so far.
     next.onend = () => {
+      clearTimeout(silenceTimer.current);
       setListening(false);
       setHeard("");
       if (latest.trim() !== "") onText(latest);
@@ -76,6 +89,7 @@ export function useDictation(onText: (text: string) => void) {
     setError(null);
     setListening(true);
     next.start();
+    restartSilenceTimer();
   }
 
   function toggle() {

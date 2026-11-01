@@ -1,5 +1,33 @@
 import { describe, expect, it } from "vitest";
-import { appendDictation, dictationErrorMessage } from "./dictation";
+import {
+  appendDictation,
+  dictationErrorMessage,
+  joinResults,
+} from "./dictation";
+
+describe("joinResults", () => {
+  it("joins separate phrases as the browser spaced them", () => {
+    expect(joinResults(["fixed the bug", " and shipped"])).toBe(
+      "fixed the bug and shipped",
+    );
+  });
+
+  it("adds a space when the browser left it out", () => {
+    expect(joinResults(["fixed the bug", "and shipped"])).toBe(
+      "fixed the bug and shipped",
+    );
+  });
+
+  it("does not repeat text when each result restates the last", () => {
+    expect(
+      joinResults(["fixed", "fixed the", "fixed the bug", "fixed the bug"]),
+    ).toBe("fixed the bug");
+  });
+
+  it("is empty before anything is heard", () => {
+    expect(joinResults([])).toBe("");
+  });
+});
 
 describe("appendDictation", () => {
   it("uses the spoken text when nothing is written", () => {
