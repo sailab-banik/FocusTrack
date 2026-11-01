@@ -9,48 +9,49 @@ It tracks work sessions and what each one produced. It is not a todo app, a habi
 **[Open the app](https://focustrack.sailab.dev/)**
 
 <p align="center">
-  <img src="docs/screenshots/tour.gif" alt="Starting a Build session, then moving through History, Work, and the weekly AI report on Review" width="960">
+  <img src="docs/screenshots/tour.gif" alt="A running Build session, the stop dialog with a different placeholder each time it opens, then Log, Projects, and a weekly AI report on Insights" width="960">
 </p>
+
+<p align="center"><a href="docs/screenshots/tour.mp4">Watch the tour as a video</a></p>
 
 ## What it does
 
 - **Timer.** Pick a project and a category, start, pause, stop.
-- **Session log.** Every session records what you worked on and what it produced.
+- **Log.** Every session records what you worked on and what it produced, in one line.
 - **Execution vs preparation.** Each category is one or the other, so every day, week, and project shows how much went to building and how much to getting ready to build.
-- **Work.** Goals, the projects that serve them, and where the last four weeks actually went, including time on projects that serve no goal.
-- **Review.** Five weeks side by side, plus daily, weekly, and monthly AI reports that cite your own numbers and end with one next action.
+- **Projects.** Why each project matters and where the last four weeks actually went, including time on projects with no goal.
+- **Insights.** Daily, weekly, and monthly AI reports that cite your own numbers and end with one next action, beside charts of where the time went.
 - **Nudges.** Computed from your own sessions and shown only in the app: take a break, still paused, pick a lapsed project back up.
 
 AI is optional. Reports are written automatically the first time you open the app after a period ends. Without an API key, everything else works and reports are shown as off.
 
-### Timer
+### Today
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/timer-dark.png">
-  <img src="docs/screenshots/timer.png" alt="A Build session running at 47 minutes, beside today's sessions and the execution and preparation split">
-</picture>
-
-### History and Work
-
-| History | Work |
+| Running session | Stopping it |
 |---|---|
-| <img src="docs/screenshots/history.png" alt="Session history grouped by day, each with its outcome, energy, and difficulty"> | <img src="docs/screenshots/work.png" alt="Goals with the projects that serve them and four weeks of time per project"> |
+| <img src="docs/screenshots/today.png" alt="A Build session running at 47 minutes, beside today's tracked time and a new daily report"> | <img src="docs/screenshots/stop-dialog.png" alt="The stop dialog asking what got done, with a placeholder matched to the Build category"> |
 
-### Review
+### Log and Projects
 
-| Five weeks | Weekly AI report |
+| Log | Projects |
 |---|---|
-| <img src="docs/screenshots/review-weeks.png" alt="Five weeks of tracked time split into execution and preparation, with a table of hours, execution share, and time on goals"> | <img src="docs/screenshots/review.png" alt="A weekly AI report with three observations backed by durations and one next action"> |
+| <img src="docs/screenshots/log.png" alt="Sessions grouped by day, each with its one-line outcome, category, and duration"> | <img src="docs/screenshots/projects.png" alt="Project cards with why each matters, time this week and over four weeks, and the last comment"> |
+
+### Insights
+
+<img src="docs/screenshots/insights.png" alt="A weekly AI report with three observations backed by durations, beside a day-by-day chart of execution and preparation">
 
 ### On a phone
 
 <p align="center">
-  <img src="docs/screenshots/mobile-timer.png" alt="The running timer on a phone with Pause and Stop buttons and a bottom tab bar" width="300">
-  &nbsp;&nbsp;
-  <img src="docs/screenshots/mobile-review.png" alt="A daily AI report on a phone" width="300">
+  <img src="docs/screenshots/mobile-today.png" alt="The running timer on a phone with Pause and Stop buttons and a bottom tab bar" width="260">
+  &nbsp;
+  <img src="docs/screenshots/mobile-stop.png" alt="The stop dialog as a bottom sheet on a phone" width="260">
+  &nbsp;
+  <img src="docs/screenshots/mobile-insights.png" alt="A weekly AI report on a phone" width="260">
 </p>
 
-<sub>Screenshots show demo data.</sub>
+<sub>Screenshots and the tour show demo data, including the report text.</sub>
 
 ## Stack
 
