@@ -1,13 +1,16 @@
 "use client";
 
+import { Mic, Square } from "lucide-react";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { CategoryKind } from "@/features/categories/category-input";
 import { KindMark } from "@/features/categories/kind-mark";
 import { stopSession, type SessionFormState } from "./actions";
+import { appendDictation } from "./dictation";
 import { DiscardSessionButton } from "./discard-session-button";
 import { outcomePlaceholder } from "./outcome-placeholder";
 import { MAX_COMMENT_LENGTH } from "./session-log";
+import { useDictation } from "./use-dictation";
 
 const initialState: SessionFormState = { status: "idle" };
 
@@ -39,6 +42,11 @@ export function StopDialog({
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [comment, setComment] = useState("");
+  const dictation = useDictation((text) =>
+    setComment((written) =>
+      appendDictation(written, text, MAX_COMMENT_LENGTH),
+    ),
+  );
   // Picked once per opening, so it holds still while the user types and erases.
   const [placeholder] = useState(() =>
     outcomePlaceholder({ categoryName, kind, projectName }),
@@ -99,9 +107,35 @@ export function StopDialog({
           placeholder={placeholder}
           className="resize-none rounded-2xl border-[1.5px] border-line-strong bg-paper p-3.5 font-serif text-[17px] leading-6 outline-none placeholder:text-[#8e8ba6] focus:border-periwinkle focus:shadow-[0_0_0_4px_var(--color-periwinkle-soft)] md:px-4 md:text-lg md:leading-[26px]"
         />
-        <span className="text-[13px] text-ink-muted">
-          One line is enough. It’s what your reports read.
-        </span>
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-[13px] text-ink-muted">
+            {dictation.listening
+              ? dictation.heard || "Listening…"
+              : "One line is enough. It’s what your reports read."}
+          </span>
+          {dictation.supported && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={dictation.toggle}
+              aria-label="Voice input"
+              aria-pressed={dictation.listening}
+              className="size-11 shrink-0 rounded-full border-line-strong aria-pressed:border-periwinkle aria-pressed:bg-periwinkle-soft aria-pressed:text-periwinkle-text"
+            >
+              {dictation.listening ? (
+                <Square aria-hidden className="ft-pulse size-4 fill-current" />
+              ) : (
+                <Mic aria-hidden className="size-5" />
+              )}
+            </Button>
+          )}
+        </div>
+        {dictation.error && (
+          <p role="alert" className="text-sm text-destructive">
+            {dictation.error}
+          </p>
+        )}
         {state.status === "error" && (
           <p role="alert" className="text-sm text-destructive">
             {state.message}
@@ -126,7 +160,7 @@ export function StopDialog({
           </Button>
           <Button
             type="submit"
-            disabled={pending || comment.trim() === ""}
+            disabled={pending || dictation.listening || comment.trim() === ""}
             className="h-14 rounded-2xl px-4 text-base font-semibold disabled:bg-line disabled:text-ink-muted disabled:opacity-100 md:h-12 md:flex-none md:rounded-[14px] md:px-[22px] md:text-[15px]"
           >
             {pending ? "Saving…" : "Save session"}

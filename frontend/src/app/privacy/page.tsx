@@ -62,6 +62,15 @@ export default function PrivacyPage() {
         works without AI.
       </p>
 
+      <h2 className={H2 + " text-ink"}>Voice input</h2>
+      <p>
+        If you tap the microphone when stopping a session, your browser turns
+        your speech into text with its own speech service. Depending on the
+        browser, that can send your audio to its maker, such as Google for
+        Chrome or Apple for Safari, under their terms. FocusTrack never receives
+        the audio, and keeps only the comment you choose to save.
+      </p>
+
       <h2 className={H2 + " text-ink"}>Who else handles your data</h2>
       <List
         items={[
