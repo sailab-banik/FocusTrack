@@ -180,6 +180,8 @@ export function RunningTimer({
           stoppedAt={stoppedAt}
           elapsedSeconds={elapsed}
           label={`${projectName} · ${categoryName} · ${formatDuration(elapsed)}`}
+          categoryName={categoryName}
+          projectName={projectName}
           kind={kind}
           onKeepGoing={() => {
             setNow(new Date());

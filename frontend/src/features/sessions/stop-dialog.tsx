@@ -6,6 +6,7 @@ import type { CategoryKind } from "@/features/categories/category-input";
 import { KindMark } from "@/features/categories/kind-mark";
 import { stopSession, type SessionFormState } from "./actions";
 import { DiscardSessionButton } from "./discard-session-button";
+import { outcomePlaceholder } from "./outcome-placeholder";
 import { MAX_COMMENT_LENGTH } from "./session-log";
 
 const initialState: SessionFormState = { status: "idle" };
@@ -19,6 +20,8 @@ export function StopDialog({
   stoppedAt,
   elapsedSeconds,
   label,
+  categoryName,
+  projectName,
   kind,
   onKeepGoing,
   onSaved,
@@ -28,12 +31,18 @@ export function StopDialog({
   elapsedSeconds: number;
   /** e.g. "FocusTrack · Build · 47m" */
   label: string;
+  categoryName: string;
+  projectName: string;
   kind: CategoryKind;
   onKeepGoing: () => void;
   onSaved: () => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [comment, setComment] = useState("");
+  // Picked once per opening, so it holds still while the user types and erases.
+  const [placeholder] = useState(() =>
+    outcomePlaceholder({ categoryName, kind, projectName }),
+  );
   const [state, formAction, pending] = useActionState(
     async (previous: SessionFormState, formData: FormData) => {
       const result = await stopSession(previous, formData);
@@ -87,7 +96,7 @@ export function StopDialog({
           maxLength={MAX_COMMENT_LENGTH}
           value={comment}
           onChange={(event) => setComment(event.target.value)}
-          placeholder="Shipped the log filters…"
+          placeholder={placeholder}
           className="resize-none rounded-2xl border-[1.5px] border-line-strong bg-paper p-3.5 font-serif text-[17px] leading-6 outline-none placeholder:text-[#8e8ba6] focus:border-periwinkle focus:shadow-[0_0_0_4px_var(--color-periwinkle-soft)] md:px-4 md:text-lg md:leading-[26px]"
         />
         <span className="text-[13px] text-ink-muted">
