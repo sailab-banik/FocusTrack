@@ -58,6 +58,16 @@ export type OverviewUser = {
   status: UserStatus;
 };
 
+export type VisitorCounts = { welcome: number; signup: number };
+
+export type Funnel = {
+  signups: number;
+  firstSession: number;
+  /** Had their first session a full week ago, so they could have come back. */
+  returnEligible: number;
+  returned: number;
+};
+
 export type Overview = {
   range: Range;
   people: number;
@@ -68,6 +78,7 @@ export type Overview = {
   types: Record<PeriodKind, TypeTotals>;
   uncountedReports: number;
   users: OverviewUser[];
+  funnel: Funnel;
   health: {
     written: number;
     firstTryPercent: number | null;
@@ -87,6 +98,7 @@ const DAY_MS = 86_400_000;
 const NEW_DAYS = 7;
 const ACTIVE_DAYS = 7;
 const QUIET_DAYS = 14;
+const RETURN_DAYS = 7;
 const RECENT_FAILURES = 5;
 
 function emptyTotals(): TypeTotals {
@@ -130,6 +142,38 @@ function median(values: number[]): number | null {
     : (sorted[middle - 1] + sorted[middle]) / 2;
 }
 
+export function firstDayOfRange(range: Range, now: Date): string {
+  return new Date(now.getTime() - (range - 1) * DAY_MS)
+    .toISOString()
+    .slice(0, 10);
+}
+
+/**
+ * Follows everyone who joined in the range, using their sessions from any date.
+ * Sessions can be logged with a past date, so the week to come back in starts no
+ * earlier than joining.
+ */
+function buildFunnel(
+  joined: AdminUser[],
+  sessions: AdminSession[],
+  now: Date,
+): Funnel {
+  const funnel = { signups: joined.length, firstSession: 0, returnEligible: 0, returned: 0 };
+  const week = RETURN_DAYS * DAY_MS;
+  for (const user of joined) {
+    const starts = sessions
+      .filter((s) => s.userId === user.id)
+      .map((s) => Date.parse(s.startedAt));
+    if (starts.length === 0) continue;
+    funnel.firstSession += 1;
+    const from = Math.max(Date.parse(user.createdAt), Math.min(...starts));
+    if (now.getTime() - from < week) continue;
+    funnel.returnEligible += 1;
+    if (starts.some((start) => start - from >= week)) funnel.returned += 1;
+  }
+  return funnel;
+}
+
 /** The numbers for one date range. Days are UTC: it spans every user's zone. */
 export function buildOverview(
   range: Range,
@@ -147,9 +191,10 @@ export function buildOverview(
       .toISOString()
       .slice(0, 10),
   );
-  const firstDay = dayKeys[0];
+  const firstDay = firstDayOfRange(range, now);
   const inRange = (iso: string) => dayKeyOf(iso) >= firstDay;
 
+  const joined = input.users.filter((u) => inRange(u.createdAt));
   const sessions = input.sessions.filter((s) => inRange(s.startedAt));
   const written = input.reports.filter(
     (r) => r.writtenAt !== null && inRange(r.writtenAt),
@@ -228,8 +273,9 @@ export function buildOverview(
 
   return {
     range,
+    funnel: buildFunnel(joined, input.sessions, now),
     people: input.users.length,
-    newPeople: input.users.filter((u) => inRange(u.createdAt)).length,
+    newPeople: joined.length,
     activePeople: new Set(sessions.map((s) => s.userId)).size,
     sessions: sessions.length,
     days: [...days.values()].map(({ people, ...day }) => ({

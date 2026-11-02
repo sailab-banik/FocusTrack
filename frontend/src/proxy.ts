@@ -63,9 +63,10 @@ function redirectKeepingCookies(
 }
 
 // Browsers fetch the manifest and icons without cookies, so a redirect to the
-// sign-in page would break installing the app.
+// sign-in page would break installing the app. Web Analytics lives under
+// _vercel and has to work for signed-out visitors, who are the ones it counts.
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|icon|apple-icon).*)",
+    "/((?!_next/static|_next/image|_vercel|favicon.ico|manifest.webmanifest|icon|apple-icon).*)",
   ],
 };

@@ -9,6 +9,7 @@ import {
   type OverviewUser,
   type Range,
   type UserStatus,
+  type VisitorCounts,
 } from "./overview";
 import type { PeriodKind } from "@/features/review/periods";
 
@@ -63,10 +64,12 @@ function shortDay(iso: string): string {
 
 export function AdminOverview({
   overviews,
+  visitors,
   model,
   today,
 }: {
   overviews: Record<Range, Overview>;
+  visitors: Record<Range, VisitorCounts | null>;
   model: string | null;
   today: string;
 }) {
@@ -169,6 +172,8 @@ export function AdminOverview({
           sub="at the rates below"
         />
       </section>
+
+      <ConversionFunnel overview={overview} visitors={visitors[range]} />
 
       <div className="flex flex-wrap gap-5">
         <ActiveChart key={`active-${range}`} overview={overview} />
@@ -330,6 +335,103 @@ function Kpi({
       <span className="font-serif text-[30px] leading-9">{value}</span>
       <span className="text-xs text-ink-muted">{sub}</span>
     </div>
+  );
+}
+
+function shareOf(part: number, whole: number | undefined): string {
+  if (!whole) return "—";
+  return `${Math.round((part / whole) * 100)}%`;
+}
+
+function ConversionFunnel({
+  overview,
+  visitors,
+}: {
+  overview: Overview;
+  visitors: VisitorCounts | null;
+}) {
+  const { funnel } = overview;
+  const steps: { label: string; count: number | null; share: string }[] = [
+    {
+      label: "Visited the welcome page",
+      count: visitors?.welcome ?? null,
+      share: "",
+    },
+    {
+      label: "Opened sign-up",
+      count: visitors?.signup ?? null,
+      share: visitors
+        ? `${shareOf(visitors.signup, visitors.welcome)} of visitors`
+        : "",
+    },
+    {
+      label: "Created an account",
+      count: funnel.signups,
+      share: visitors
+        ? `${shareOf(funnel.signups, visitors.welcome)} of visitors`
+        : "",
+    },
+    {
+      label: "Logged a first session",
+      count: funnel.firstSession,
+      share: `${shareOf(funnel.firstSession, funnel.signups)} of accounts`,
+    },
+    {
+      label: "Came back a week later",
+      count: funnel.returned,
+      share:
+        funnel.returnEligible === 0
+          ? "No one has had a week yet"
+          : `${shareOf(funnel.returned, funnel.returnEligible)} of ${funnel.returnEligible} who have had a week`,
+    },
+  ];
+  const widest = Math.max(1, ...steps.map((step) => step.count ?? 0));
+
+  return (
+    <section
+      aria-labelledby="admin-funnel"
+      className={`${CARD} gap-3.5`}
+    >
+      <h2 id="admin-funnel" className={HEADING}>
+        Conversion
+      </h2>
+      <ol className="flex flex-col">
+        {steps.map((step) => (
+          <li
+            key={step.label}
+            className="flex flex-col gap-2 border-b border-line-soft py-3 last:border-b-0"
+          >
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 text-sm">
+              <span className="font-semibold">{step.label}</span>
+              <span className="flex items-baseline gap-3">
+                <span className="text-xs text-ink-muted">{step.share}</span>
+                <span className="font-serif text-lg">
+                  {step.count === null
+                    ? "—"
+                    : step.count.toLocaleString("en-US")}
+                </span>
+              </span>
+            </div>
+            <span aria-hidden className="block h-2 rounded-full bg-wash">
+              {step.count !== null && step.count > 0 && (
+                <span
+                  className="block h-full rounded-full bg-indigo"
+                  style={{ width: `${(step.count / widest) * 100}%` }}
+                />
+              )}
+            </span>
+          </li>
+        ))}
+      </ol>
+      <p className="text-xs text-ink-muted">
+        {visitors === null &&
+          "Visitor counts are unavailable right now, so the rates from visitors are hidden. "}
+        Accounts and sessions follow people who joined in this range. Visitors
+        are an estimate: counting started when Web Analytics was turned on, ad
+        blockers hide some, and anyone who joins from the sign-in page skips
+        sign-up.
+      </p>
+    </section>
   );
 }
 

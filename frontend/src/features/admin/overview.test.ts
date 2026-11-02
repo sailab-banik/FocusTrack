@@ -122,6 +122,35 @@ describe("buildOverview", () => {
     ],
   };
 
+  it("follows people who joined in the range through the funnel", () => {
+    expect(buildOverview(7, input).funnel).toEqual({
+      signups: 1,
+      firstSession: 1,
+      returnEligible: 0,
+      returned: 0,
+    });
+    expect(buildOverview(90, input).funnel).toEqual({
+      signups: 2,
+      firstSession: 2,
+      returnEligible: 1,
+      returned: 1,
+    });
+  });
+
+  it("does not count a session logged with a date before joining as coming back", () => {
+    const { funnel } = buildOverview(30, {
+      ...input,
+      users: [{ id: "c", email: "c@x.com", name: "", createdAt: ago(10) }],
+      sessions: [session("c", 25), session("c", 5)],
+    });
+    expect(funnel).toEqual({
+      signups: 1,
+      firstSession: 1,
+      returnEligible: 1,
+      returned: 0,
+    });
+  });
+
   it("counts only the range on view", () => {
     const week = buildOverview(7, input);
     expect(week.days).toHaveLength(7);

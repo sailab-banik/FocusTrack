@@ -6,7 +6,8 @@ const contentSecurityPolicy = [
   "default-src 'self'",
   // Next.js streams inline scripts. Allowing them by nonce instead would force
   // every page to render dynamically.
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  // Outside production, Web Analytics loads its debug script from Vercel.
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval' https://va.vercel-scripts.com" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' blob: data:",
   "font-src 'self'",

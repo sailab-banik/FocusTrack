@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Onest, Young_Serif } from "next/font/google";
+import { SiteAnalytics } from "@/features/analytics/site-analytics";
 import "./globals.css";
 import "./daylight.css";
 
@@ -28,7 +29,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${onest.variable} ${youngSerif.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col tabular-nums">{children}</body>
+      <body className="min-h-full flex flex-col tabular-nums">
+        {children}
+        <SiteAnalytics />
+      </body>
     </html>
   );
 }

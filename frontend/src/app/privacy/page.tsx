@@ -24,7 +24,7 @@ export default function PrivacyPage() {
         Privacy
       </h1>
       <p className="text-[13px] text-ink-muted">
-        Last updated November 1, 2026
+        Last updated November 2, 2026
       </p>
       <p>
         FocusTrack is a personal work tracker run by Sailab Banik. This page
@@ -75,14 +75,18 @@ export default function PrivacyPage() {
       <List
         items={[
           "Supabase hosts the database and handles sign-in.",
-          "Vercel hosts the app.",
+          "Vercel hosts the app and counts page visits, as below.",
           "OpenAI writes the AI reports, as above.",
           "Google handles sign-in if you choose it.",
         ]}
       />
       <p>
-        FocusTrack does not sell your data, show ads, or use analytics or
-        tracking tools. These services may process data outside your country.
+        FocusTrack uses Vercel Web Analytics to count page visits. It uses no
+        cookies and is not linked to your account. Vercel receives the page
+        address, with session ids removed, along with the referring site, your
+        rough location, and your device and browser type. FocusTrack does not
+        sell your data or show ads. These services may process data outside
+        your country.
       </p>
 
       <h2 className={H2 + " text-ink"}>Who can see it</h2>

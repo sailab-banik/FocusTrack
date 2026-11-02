@@ -3,6 +3,7 @@ import { requireAdmin } from "@/features/admin/access";
 import { AdminOverview } from "@/features/admin/admin-overview";
 import { buildOverview, RANGES, type Range } from "@/features/admin/overview";
 import { loadAdminData } from "@/features/admin/queries";
+import { loadVisitors } from "@/features/admin/visitors";
 import { getAiProvider } from "@/features/ai/get-provider";
 
 export const metadata: Metadata = { title: "Admin · FocusTrack" };
@@ -10,7 +11,10 @@ export const metadata: Metadata = { title: "Admin · FocusTrack" };
 export default async function AdminPage() {
   await requireAdmin();
   const now = new Date();
-  const data = await loadAdminData(now, Math.max(...RANGES));
+  const [data, visitors] = await Promise.all([
+    loadAdminData(now, Math.max(...RANGES)),
+    loadVisitors(now),
+  ]);
   const input = { ...data, now };
 
   return (
@@ -21,6 +25,7 @@ export default async function AdminPage() {
             RANGES.map((range) => [range, buildOverview(range, input)]),
           ) as Record<Range, ReturnType<typeof buildOverview>>
         }
+        visitors={visitors}
         model={getAiProvider()?.model ?? null}
         today={now.toLocaleDateString("en-US", {
           timeZone: "UTC",

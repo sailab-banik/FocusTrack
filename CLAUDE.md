@@ -41,7 +41,7 @@ Backend (`backend/`, local Supabase, needs Docker):
 | `pnpm test` | Run pgTAP database tests in `supabase/tests/` (RLS checks) |
 | `pnpm types` | Regenerate `frontend/src/lib/supabase/database.types.ts` from the local database |
 
-Environment: copy `frontend/.env.example` to `frontend/.env.local` and fill in the Supabase URL and publishable key. Optional, server-only: `OPENAI_API_KEY` turns on AI reports, and `OPENAI_MODEL` overrides the default model (`gpt-6.1-sol`). Without a key the app works fully and reports are shown as off. For the admin overview, also server-only: `ADMIN_EMAILS` (comma-separated) and `SUPABASE_SECRET_KEY`. Without both, `/admin` does not exist for anyone.
+Environment: copy `frontend/.env.example` to `frontend/.env.local` and fill in the Supabase URL and publishable key. Optional, server-only: `OPENAI_API_KEY` turns on AI reports, and `OPENAI_MODEL` overrides the default model (`gpt-6.1-sol`). Without a key the app works fully and reports are shown as off. For the admin overview, also server-only: `ADMIN_EMAILS` (comma-separated) and `SUPABASE_SECRET_KEY`. Without both, `/admin` does not exist for anyone. For visitor counts in its funnel, also server-only: `VERCEL_ANALYTICS_TOKEN` and `VERCEL_TEAM_ID` (Vercel supplies `VERCEL_PROJECT_ID`). Without them the funnel starts at accounts.
 
 Hosted Supabase auth setup (dashboard, not in code):
 
@@ -74,6 +74,7 @@ backend/                   Database and auth
 - Tests sit next to the code they cover as `*.test.ts`.
 - AI: features call the `AiProvider` interface (`src/features/ai/provider.ts`), never a vendor API; `getAiProvider()` returns null when unconfigured. Reports are never requested by the user: `DueReports` in the app layout calls `requestDueReports` when the app is opened, which claims a row in `reports` per due period and writes it via `after()`. One row per user and period is the cap on provider calls, so keep every AI call behind a claim like it. Bump `PROMPT_VERSION` in `src/features/review/prompt.ts` whenever the prompt or schema changes.
 - Admin: `src/lib/supabase/admin.ts` bypasses RLS, so only `src/features/admin/` may import it, always behind `requireAdmin()`, and its queries select usage columns only. Never session comments or project names.
+- Analytics: Vercel Web Analytics is the only tracking, in `src/features/analytics/`. `redactUrl` strips session ids and non-campaign query parameters before anything is sent, and `proxy.ts` must keep skipping `_vercel` or signed-out visits are not counted. Update `/privacy` if what is sent changes.
 - Times: the server renders in UTC, so anything showing wall-clock times or day boundaries uses the user's timezone from `getTimeZone()` (a `tz` cookie mirrored from the browser by `TimeZoneSync`) and the helpers in `src/features/timezone/zoned-time.ts`.
 
 ## Stack
