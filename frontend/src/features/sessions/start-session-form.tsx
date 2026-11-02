@@ -12,6 +12,7 @@ import { parseStartInput } from "./start-input";
 import { ShowStartedContext } from "./timer-screen";
 
 const initialState: SessionFormState = { status: "idle" };
+const QUICK_START_FROM_PROJECTS = 6;
 
 export function StartSessionForm({
   projects,
@@ -42,8 +43,13 @@ export function StartSessionForm({
 
   const project = projects.find((p) => p.id === projectId);
   const category = categories.find((c) => c.id === categoryId);
-  // Phones offer the last pair as one big button, so a start is a single tap.
-  const quickStart = project && category && !choosing;
+  // Phones offer the last pair as one big button once the chooser is too long
+  // to fit; below that, the open chooser is just as quick and shows every option.
+  const quickStart =
+    project &&
+    category &&
+    !choosing &&
+    projects.length >= QUICK_START_FROM_PROJECTS;
 
   return (
     <form action={formAction} className="flex flex-col gap-4 md:gap-5">
@@ -78,7 +84,7 @@ export function StartSessionForm({
             onClick={() => setChoosing(true)}
             className="h-12 cursor-pointer rounded-[14px] bg-wash text-[15px] font-semibold text-indigo"
           >
-            Something else
+            Choose another project
           </button>
         </div>
       )}
