@@ -1,8 +1,16 @@
 "use client";
 
-import { createContext, useCallback, useOptimistic, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useEffect,
+  useOptimistic,
+  useState,
+} from "react";
 import type { Category } from "@/features/categories/queries";
 import type { Project } from "@/features/projects/queries";
+import { closeStaleSession, type ClosedSession } from "./actions";
+import { ClosedSessionCard } from "./closed-session-card";
 import type { RunningSession } from "./queries";
 import { RunningTimer } from "./running-timer";
 import type { StartInput } from "./start-input";
@@ -21,12 +29,15 @@ export function TimerScreen({
   running,
   projects,
   categories,
+  staleSessionId,
   timeZone,
   children,
 }: {
   running: RunningSession | null;
   projects: Project[];
   categories: Category[];
+  /** A session left on, which this closes and then reports on. */
+  staleSessionId: string | null;
   timeZone: string;
   children: React.ReactNode;
 }) {
@@ -34,6 +45,16 @@ export function TimerScreen({
   // Lives here because saving a session unmounts the running timer.
   const [savedLine, setSavedLine] = useState<string | null>(null);
   const clearSaved = useCallback(() => setSavedLine(null), []);
+  // Here for the same reason: closing the session refreshes the page.
+  const [closed, setClosed] = useState<ClosedSession | null>(null);
+
+  useEffect(() => {
+    if (!staleSessionId) return;
+    void closeStaleSession(staleSessionId).then((result) => {
+      // A second call, from another tab or a remount, finds nothing to close.
+      if (result) setClosed(result);
+    });
+  }, [staleSessionId]);
 
   function showStarted(sessionId: string, input: StartInput) {
     setShown({
@@ -50,6 +71,15 @@ export function TimerScreen({
 
   return (
     <>
+      {closed && (
+        <div className="mb-5">
+          <ClosedSessionCard
+            closed={closed}
+            timeZone={timeZone}
+            onDismiss={() => setClosed(null)}
+          />
+        </div>
+      )}
       {shown && (
         <ActiveSession
           key={shown.id}

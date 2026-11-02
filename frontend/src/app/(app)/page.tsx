@@ -22,6 +22,7 @@ import {
   getRunningSession,
   listSessionSpans,
 } from "@/features/sessions/queries";
+import { staleOutcome } from "@/features/sessions/stale-session";
 import { StartSessionForm } from "@/features/sessions/start-session-form";
 import { TimerScreen } from "@/features/sessions/timer-screen";
 import { TodayPanel, TrackedToday } from "@/features/sessions/today-panel";
@@ -47,6 +48,9 @@ export default async function TodayPage({ searchParams }: PageProps<"/">) {
       searchParams,
       cookies(),
     ]);
+  // A session left on is closed by the timer screen, so it is not shown as running.
+  const stale = running && staleOutcome(running, now) ? running : null;
+  const live = stale ? null : running;
   // Every new account lands in setup first, unless they chose to skip it.
   if (projects.length === 0 && !store.has(SETUP_SKIPPED_COOKIE)) {
     redirect(SETUP_PATH);
@@ -92,12 +96,13 @@ export default async function TodayPage({ searchParams }: PageProps<"/">) {
               className="rounded-[26px] bg-paper p-5 shadow-[0_1px_2px_rgb(31_27_61/.05),0_16px_40px_rgb(46_42_120/.12)] md:rounded-3xl md:p-7"
             >
               <TimerScreen
-                running={running}
+                running={live}
+                staleSessionId={stale?.id ?? null}
                 projects={projects}
                 categories={categories}
                 timeZone={timeZone}
               >
-                {!running && (
+                {!live && (
                   <StartPanel
                     projects={activeProjects}
                     categories={categories}
@@ -126,7 +131,7 @@ export default async function TodayPage({ searchParams }: PageProps<"/">) {
             <Suspense>
               <ReportReadyCard />
             </Suspense>
-            {!running && nudges.length > 0 && (
+            {!live && nudges.length > 0 && (
               <RevisitNudges nudges={nudges} now={now} timeZone={timeZone} />
             )}
           </aside>

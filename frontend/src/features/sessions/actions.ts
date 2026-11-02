@@ -6,10 +6,15 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/features/auth/current-user";
 import { getTimeZone } from "@/features/timezone/time-zone";
 import { createClient } from "@/lib/supabase/server";
-import { pausedSecondsAfterResume } from "./duration";
+import { durationSeconds, pausedSecondsAfterResume } from "./duration";
 import { parseSessionInput, type SessionInput } from "./session-input";
 import { parseSessionLog, resolveEndedAt } from "./session-log";
 import { isUuid } from "@/lib/uuid";
+import {
+  staleOutcome,
+  staleSessionLine,
+  type StaleOutcome,
+} from "./stale-session";
 import { parseStartInput } from "./start-input";
 
 export type SessionFormState =
@@ -175,6 +180,90 @@ export async function discardSession(id: string): Promise<void> {
     .is("ended_at", null);
   if (error) throw error;
   refresh();
+}
+
+export type ClosedSession = {
+  outcome: StaleOutcome;
+  sessionId: string;
+  line: string;
+  wasPaused: boolean;
+  /** When the pause began, or when the unbroken stretch began. */
+  since: string;
+  /** Time worked if saved; the stretch without a pause if discarded. */
+  seconds: number;
+};
+
+/**
+ * Closes a session left on (see staleOutcome), when the timer page finds one.
+ * Null if it no longer qualifies, for example because another device already
+ * closed, paused, or resumed it.
+ */
+export async function closeStaleSession(
+  id: string,
+): Promise<ClosedSession | null> {
+  await requireUser();
+  if (!isUuid(id)) throw new Error("Invalid session id");
+  const supabase = await createClient();
+  const { data: row, error: readError } = await supabase
+    .from("sessions")
+    .select(
+      "started_at, paused_at, paused_seconds, resumed_at, projects(name), categories(name)",
+    )
+    .eq("id", id)
+    .is("ended_at", null)
+    .maybeSingle();
+  if (readError) throw readError;
+  if (!row) return null;
+
+  const now = new Date();
+  const outcome = staleOutcome(
+    {
+      startedAt: row.started_at,
+      pausedAt: row.paused_at,
+      pausedSeconds: row.paused_seconds,
+      resumedAt: row.resumed_at,
+    },
+    now,
+  );
+  if (!outcome) return null;
+  const line = staleSessionLine(row.projects.name, row.categories.name);
+  const pausedAt = row.paused_at;
+  const since = pausedAt ?? row.resumed_at ?? row.started_at;
+
+  // Matching the pause state read above leaves the session alone if another
+  // device paused or resumed it in between.
+  const { data, error } =
+    outcome === "save"
+      ? await supabase
+          .from("sessions")
+          .update({ ended_at: pausedAt, paused_at: null, outcome: line })
+          .eq("id", id)
+          .is("ended_at", null)
+          .eq("paused_at", pausedAt!)
+          .select("id")
+      : await supabase
+          .from("sessions")
+          .delete()
+          .eq("id", id)
+          .is("ended_at", null)
+          .filter("paused_at", pausedAt ? "eq" : "is", pausedAt)
+          .filter("resumed_at", row.resumed_at ? "eq" : "is", row.resumed_at)
+          .select("id");
+  if (error) throw error;
+  refresh();
+  if (data.length === 0) return null;
+
+  return {
+    outcome,
+    sessionId: id,
+    line,
+    wasPaused: pausedAt !== null,
+    since,
+    seconds: pausedAt
+      ? durationSeconds(new Date(row.started_at), new Date(pausedAt)) -
+        row.paused_seconds
+      : durationSeconds(new Date(since), now),
+  };
 }
 
 const HISTORY_PATH = "/log";

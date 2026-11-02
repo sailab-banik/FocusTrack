@@ -164,6 +164,9 @@ In-app only: no push, email, or scheduled reminders. A nudge is computed from tr
 | Take a break | 90 minutes of work without a pause | Running timer, and the tab title |
 | Still paused | A pause has lasted 30 minutes | Running timer, and the tab title |
 | Pick it back up | A project was worked on at least 2 of the 7 days up to its last session, then left for 3 to 14 days | Timer page, when no session is running |
+| Left on | 12 hours without a pause, or a pause of 12 hours | Timer page, once the session has been closed |
+
+"Left on" is the one nudge that acts first: the timer page closes the session, then says what it did. A running session's end is unknown, so it is discarded rather than saved with made-up hours. A paused one is saved ending when the pause began, with "Project · Category" as its line, unless it has no time worked.
 
 "Keep going" quiets the break nudge for 30 minutes. A dismissed "pick it back up" nudge stays dismissed for that lapse, on that device.
 
