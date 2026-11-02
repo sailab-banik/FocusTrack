@@ -1,13 +1,47 @@
+// "Period" is left out: "trial period" would become "trial.".
+const SPOKEN_MARKS: [RegExp, string][] = [
+  [/\s*\bfull stop\b/gi, "."],
+  [/\s*\bcomma\b/gi, ","],
+  [/\s*\bquestion mark\b/gi, "?"],
+  [/\s*\bexclamation (?:mark|point)\b/gi, "!"],
+];
+const SENTENCE_END = /[.?!]$/;
+
+/**
+ * Turns spoken punctuation into marks and starts each sentence with a capital.
+ * Desktop browsers return bare lowercase words; phones often punctuate already,
+ * and this leaves that alone.
+ */
+export function formatDictation(spoken: string, startsSentence: boolean): string {
+  const punctuated = SPOKEN_MARKS.reduce(
+    (text, [words, mark]) => text.replace(words, mark),
+    spoken.trim(),
+  )
+    .replace(/([.,?!])(?=[^\s.,?!])/g, "$1 ")
+    .trim();
+  const capitalAfter = startsSentence ? /(^|[.?!]\s+)(\p{Ll})/gu : /([.?!]\s+)(\p{Ll})/gu;
+  return punctuated.replace(
+    capitalAfter,
+    (_, before: string, letter: string) => before + letter.toUpperCase(),
+  );
+}
+
 /** Adds spoken text after what is already written, within the length limit. */
 export function appendDictation(
   written: string,
   spoken: string,
   maxLength: number,
 ): string {
-  const addition = spoken.trim();
-  if (addition === "") return written;
   const start = written.trimEnd();
-  const joined = start === "" ? addition : `${start} ${addition}`;
+  const addition = formatDictation(
+    spoken,
+    start === "" || SENTENCE_END.test(start),
+  );
+  if (addition === "") return written;
+  const joined =
+    start === "" || /^[.,?!]/.test(addition)
+      ? start + addition
+      : `${start} ${addition}`;
   return joined.slice(0, maxLength);
 }
 
