@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Onest, Young_Serif } from "next/font/google";
 import { SiteAnalytics } from "@/features/analytics/site-analytics";
+import { SITE_URL } from "@/features/search/site-url";
 import "./globals.css";
 import "./daylight.css";
 
@@ -12,6 +13,7 @@ const youngSerif = Young_Serif({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "FocusTrack",
   description: "Personal work intelligence and execution tracker",
   appleWebApp: { capable: true, title: "FocusTrack" },
