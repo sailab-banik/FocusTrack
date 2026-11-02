@@ -9,8 +9,8 @@ import {
   type OverviewUser,
   type Range,
   type UserStatus,
-  type VisitorCounts,
 } from "./overview";
+import type { VisitorResult } from "./visitors";
 import type { PeriodKind } from "@/features/review/periods";
 
 const CARD =
@@ -69,7 +69,7 @@ export function AdminOverview({
   today,
 }: {
   overviews: Record<Range, Overview>;
-  visitors: Record<Range, VisitorCounts | null>;
+  visitors: Record<Range, VisitorResult>;
   model: string | null;
   today: string;
 }) {
@@ -345,12 +345,13 @@ function shareOf(part: number, whole: number | undefined): string {
 
 function ConversionFunnel({
   overview,
-  visitors,
+  visitors: result,
 }: {
   overview: Overview;
-  visitors: VisitorCounts | null;
+  visitors: VisitorResult;
 }) {
   const { funnel } = overview;
+  const visitors = result.ok ? result.counts : null;
   const steps: { label: string; count: number | null; share: string }[] = [
     {
       label: "Visited the welcome page",
@@ -424,8 +425,8 @@ function ConversionFunnel({
         ))}
       </ol>
       <p className="text-xs text-ink-muted">
-        {visitors === null &&
-          "Visitor counts are unavailable right now, so the rates from visitors are hidden. "}
+        {!result.ok &&
+          `Visitor counts are unavailable (${result.reason}), so the rates from visitors are hidden. `}
         Accounts and sessions follow people who joined in this range. Visitors
         are an estimate: counting started when Web Analytics was turned on, ad
         blockers hide some, and anyone who joins from the sign-in page skips

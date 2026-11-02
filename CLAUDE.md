@@ -41,7 +41,7 @@ Backend (`backend/`, local Supabase, needs Docker):
 | `pnpm test` | Run pgTAP database tests in `supabase/tests/` (RLS checks) |
 | `pnpm types` | Regenerate `frontend/src/lib/supabase/database.types.ts` from the local database |
 
-Environment: copy `frontend/.env.example` to `frontend/.env.local` and fill in the Supabase URL and publishable key. Optional, server-only: `OPENAI_API_KEY` turns on AI reports, and `OPENAI_MODEL` overrides the default model (`gpt-6.1-sol`). Without a key the app works fully and reports are shown as off. For the admin overview, also server-only: `ADMIN_EMAILS` (comma-separated) and `SUPABASE_SECRET_KEY`. Without both, `/admin` does not exist for anyone. For visitor counts in its funnel, also server-only: `VERCEL_ANALYTICS_TOKEN` and `VERCEL_TEAM_ID` (Vercel supplies `VERCEL_PROJECT_ID`). Without them the funnel starts at accounts.
+Environment: copy `frontend/.env.example` to `frontend/.env.local` and fill in the Supabase URL and publishable key. Optional, server-only: `OPENAI_API_KEY` turns on AI reports, and `OPENAI_MODEL` overrides the default model (`gpt-6.1-sol`). Without a key the app works fully and reports are shown as off. For the admin overview, also server-only: `ADMIN_EMAILS` (comma-separated) and `SUPABASE_SECRET_KEY`. Without both, `/admin` does not exist for anyone. For visitor counts in its funnel, also server-only: `VERCEL_ANALYTICS_TOKEN`, `VERCEL_TEAM_ID` and `VERCEL_ANALYTICS_PROJECT_ID`. Without them the funnel starts at accounts and says which are missing.
 
 Hosted Supabase auth setup (dashboard, not in code):
 
