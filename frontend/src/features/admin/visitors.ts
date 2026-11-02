@@ -48,6 +48,9 @@ export async function loadVisitors(
   now: Date,
 ): Promise<Record<Range, VisitorResult>> {
   const missing = SETTINGS.filter((name) => !process.env[name]);
+  // Vercel rounds `until` down to the start of its day, which would drop today.
+  const endOfToday = new Date(now);
+  endOfToday.setUTCHours(24, 0, 0, 0);
   const entries = await Promise.all(
     RANGES.map(async (range): Promise<[Range, VisitorResult]> => {
       if (missing.length > 0) {
@@ -58,7 +61,7 @@ export async function loadVisitors(
         projectId: process.env.VERCEL_ANALYTICS_PROJECT_ID!,
         teamId: process.env.VERCEL_TEAM_ID!,
         since: `${firstDayOfRange(range, now)}T00:00:00.000Z`,
-        until: now.toISOString(),
+        until: endOfToday.toISOString(),
       };
       try {
         const [welcome, signup] = await Promise.all([
